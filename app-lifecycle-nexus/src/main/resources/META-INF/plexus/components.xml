@@ -1,0 +1,38 @@
+<component-set>
+  <components>
+    <component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>nexus-plugin</role-hint>
+      <implementation>org.sonatype.maven.plugin.app.DelegatingLifecyleMapping</implementation>
+      <requirements>
+        <requirement>
+	      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+	      <role-hint>abstract-plugin</role-hint>
+        </requirement>
+      </requirements>
+    </component>
+    <component>
+      <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
+      <role-hint>nexus-plugin</role-hint>
+      <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
+      <configuration>
+        <type>nexus-plugin</type>
+        <extension>jar</extension>
+        <language>java</language>
+        <!-- <classifier>bundle</classifier> -->
+        <addedToClasspath>true</addedToClasspath>
+      </configuration>
+    </component>
+    <component>
+      <role>org.sonatype.maven.plugin.app.AppMapping</role>
+      <implementation>org.sonatype.maven.plugin.app.AppMapping</implementation>
+      <configuration>
+        <coreGroupIdPatterns>
+          <coreGroupIdPattern>org.sonatype.nexus</coreGroupIdPattern>
+          <coreGroupIdPattern>com.sonatype.nexus</coreGroupIdPattern>
+        </coreGroupIdPatterns>
+        <pluginPackaging>nexus-plugin</pluginPackaging>
+      </configuration>
+    </component>
+  </components>
+</component-set>
