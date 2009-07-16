@@ -15,7 +15,9 @@
   <name>App Lifecycle Tools</name>
   
   <modules>
+    <module>app-lifecycle-assembly-descriptor</module>
     <module>app-lifecycle-maven-plugin</module>
+    <module>app-lifecycle-base</module>
     <module>app-lifecycle-nexus</module>
   </modules>
   

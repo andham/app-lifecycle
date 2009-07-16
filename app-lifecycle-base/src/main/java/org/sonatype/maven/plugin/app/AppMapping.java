@@ -1,5 +1,6 @@
 package org.sonatype.maven.plugin.app;
 
+
 import java.util.HashSet;
 import java.util.Set;
 

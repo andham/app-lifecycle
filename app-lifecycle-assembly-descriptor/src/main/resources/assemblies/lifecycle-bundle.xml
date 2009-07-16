@@ -1,0 +1,19 @@
+<assembly>
+  <id>lifecycle-bundle</id>
+  <formats>
+    <format>jar</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <dependencySets>
+    <dependencySet>
+      <useProjectArtifact>true</useProjectArtifact>
+      <useTransitiveDependencies>false</useTransitiveDependencies>
+      <includes>
+        <include>${project.groupId}:${project.artifactId}</include>
+        <include>org.sonatype.plugins:app-lifecycle-base</include>
+      </includes>
+      <unpack>true</unpack>
+      <outputDirectory>/</outputDirectory>
+    </dependencySet>
+  </dependencySets>
+</assembly>

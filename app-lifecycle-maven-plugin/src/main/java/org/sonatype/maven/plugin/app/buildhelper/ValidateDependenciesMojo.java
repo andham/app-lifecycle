@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @goal check-nexus-dependencies
+ * @goal check-dependencies
  * @requiresDependencyResolution runtime
  * @phase initialize
  */

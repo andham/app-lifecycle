@@ -1,5 +1,6 @@
 package org.sonatype.maven.plugin.app;
 
+
 import org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping;
 import org.apache.maven.lifecycle.mapping.LifecycleMapping;
 
