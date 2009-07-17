@@ -6,7 +6,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
-import org.sonatype.maven.plugin.app.AppMapping;
+import org.sonatype.maven.plugin.app.ApplicationInformation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +31,7 @@ public class ValidateDependenciesMojo
     /**
      * @component
      */
-    private AppMapping mapping;
+    private ApplicationInformation mapping;
 
     private Log log;
 

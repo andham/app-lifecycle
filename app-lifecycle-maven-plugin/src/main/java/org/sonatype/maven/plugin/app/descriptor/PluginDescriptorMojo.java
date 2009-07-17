@@ -7,9 +7,10 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.interpolation.InterpolationException;
 import org.codehaus.plexus.util.IOUtil;
-import org.sonatype.maven.plugin.app.AppMapping;
+import org.sonatype.maven.plugin.app.ApplicationInformation;
+import org.sonatype.maven.plugin.app.ClasspathUtils;
 import org.sonatype.plugin.ExtensionPoint;
 import org.sonatype.plugin.Managed;
 import org.sonatype.plugin.metadata.GAVCoordinate;
@@ -36,10 +37,11 @@ public class PluginDescriptorMojo
     extends AbstractMojo
 {
     /**
-     * The output location for the generated plugin descriptor.
+     * The output location for the generated plugin descriptor. <br/>
+     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included via build
+     * extension.
      * 
-     * @parameter default-value="${project.build.outputDirectory}/META-INF/nexus/plugin.xml"
-     * @required
+     * @parameter
      */
     private File generatedPluginMetadata;
 
@@ -52,29 +54,36 @@ public class PluginDescriptorMojo
 
     /**
      * The ID of the target application. For example if this plugin was for the Nexus Repository Manager, the ID would
-     * be, 'nexus'.
+     * be, 'nexus'. <br/>
+     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included via build
+     * extension.
      * 
-     * @parameter expression="nexus"
-     * @required
+     * @parameter
      */
     private String applicationId;
 
     /**
-     * The edition of the target application. Some applications come in multiple flavors, OSS, PRO, Free, light, etc.
+     * The edition of the target application. Some applications come in multiple flavors, OSS, PRO, Free, light, etc. <br/>
+     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included via build
+     * extension.
      * 
      * @parameter expression="OSS"
      */
     private String applicationEdition;
 
     /**
-     * The minimum product version of the target application.
+     * The minimum product version of the target application. <br/>
+     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included via build
+     * extension.
      * 
-     * @parameter expression="1.4.0"
+     * @parameter
      */
     private String applicationMinVersion;
 
     /**
-     * The maximum product version of the target application.
+     * The maximum product version of the target application. <br/>
+     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included via build
+     * extension, if it specified at all.
      * 
      * @parameter
      */
@@ -84,16 +93,18 @@ public class PluginDescriptorMojo
      * The list of user defined MIME types
      * 
      * @parameter
+     * @deprecated Not sure why this is here, but it's not used. (jdcasey)
      */
+    @Deprecated
     @SuppressWarnings( "unused" )
     private List<String> userMimeTypes;
 
     /**
-     * The output location for the generated plugin descriptor.
+     * The output location for the generated plugin descriptor. <br/>
+     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included via build
+     * extension.
      * 
-     * @parameter default-value="${project.build.outputDirectory}/META-INF/nexus/userMimeTypes.properties"
-     * @required
-     * @readonly
+     * @parameter
      */
     private File userMimeTypesFile;
 
@@ -101,16 +112,14 @@ public class PluginDescriptorMojo
     private PluginMetadataGenerator metadataGenerator;
 
     /**
-     * The temporary working directory for storing classpath artifacts that should be bundled with the plugin.
+     * Brought in via build extension, this supplies default values specific to the application being built. <br/>
+     * <b>NOTE:</b> There should be <b>AT MOST ONE</b> {@link ApplicationInformation} component present in any given
+     * build. If this component is missing, it should be created on-the-fly, and will be empty...which means the plugin
+     * parameters given here will be required.
      * 
-     * @parameter default-value="${project.build.directory}/bundle-classpath"
-     */
-    private File classpathWorkdir;
-
-    /**
      * @component
      */
-    private AppMapping mapping;
+    private ApplicationInformation mapping;
 
     @SuppressWarnings( "unchecked" )
     public void execute()
@@ -121,6 +130,8 @@ public class PluginDescriptorMojo
             this.getLog().info( "Project is not of packaging type '" + mapping.getPluginPackaging() + "'." );
             return;
         }
+
+        initConfig();
 
         // get the user customization
         Properties userMimeTypes = null;
@@ -153,10 +164,10 @@ public class PluginDescriptorMojo
         request.setDescription( this.mavenProject.getDescription() );
         request.setPluginSiteURL( this.mavenProject.getUrl() );
 
-        request.setApplicationId( this.applicationId );
-        request.setApplicationEdition( this.applicationEdition );
-        request.setApplicationMinVersion( this.applicationMinVersion );
-        request.setApplicationMaxVersion( this.applicationMaxVersion );
+        request.setApplicationId( applicationId );
+        request.setApplicationEdition( applicationEdition );
+        request.setApplicationMinVersion( applicationMinVersion );
+        request.setApplicationMaxVersion( applicationMaxVersion );
 
         // licenses
         if ( this.mavenProject.getLicenses() != null )
@@ -255,19 +266,50 @@ public class PluginDescriptorMojo
             throw new MojoFailureException( "Failed to generate plugin xml file: " + e.getMessage(), e );
         }
 
-        for ( Artifact artifact : classpathArtifacts )
+        try
         {
-            File artifactFile = artifact.getFile();
+            ClasspathUtils.write( classpathArtifacts, mavenProject );
+        }
+        catch ( IOException e )
+        {
+            throw new MojoFailureException( "Failed to generate classpath properties file: " + e.getMessage(), e );
+        }
+    }
 
+    private void initConfig()
+        throws MojoFailureException
+    {
+        if ( userMimeTypesFile == null )
+        {
             try
             {
-                FileUtils.copyFile( artifactFile, new File( classpathWorkdir, artifactFile.getName() ) );
+                userMimeTypesFile = mapping.getUserMimeTypesFile( mavenProject );
             }
-            catch ( IOException e )
+            catch ( InterpolationException e )
             {
-                throw new MojoFailureException( "Failed to copy classpath artifact: " + artifactFile
-                    + "\nto working directory: " + classpathWorkdir + "\nReason: " + e.getMessage(), e );
+                throw new MojoFailureException( "Cannot calculate User MIME types file location from expression: "
+                    + mapping.getUserMimeTypesPath(), e );
             }
         }
+
+        if ( this.generatedPluginMetadata == null )
+        {
+            try
+            {
+                this.generatedPluginMetadata = mapping.getPluginMetadataFile( this.mavenProject );
+            }
+            catch ( InterpolationException e )
+            {
+                throw new MojoFailureException( "Cannot calculate plugin metadata file location from expression: "
+                    + mapping.getPluginMetadataPath(), e );
+            }
+        }
+
+        this.applicationId = applicationId == null ? mapping.getApplicationId() : applicationId;
+        this.applicationEdition = applicationEdition == null ? mapping.getApplicationEdition() : applicationEdition;
+        this.applicationMinVersion =
+            applicationMinVersion == null ? mapping.getApplicationMinVersion() : applicationMinVersion;
+        this.applicationMaxVersion =
+            applicationMaxVersion == null ? mapping.getApplicationMaxVersion() : applicationMaxVersion;
     }
 }

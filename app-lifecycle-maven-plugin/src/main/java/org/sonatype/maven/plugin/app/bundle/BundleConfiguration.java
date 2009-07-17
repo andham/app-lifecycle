@@ -5,7 +5,6 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.assembly.AssemblerConfigurationSource;
 import org.apache.maven.plugin.assembly.model.Assembly;
-import org.apache.maven.plugin.assembly.model.FileSet;
 import org.apache.maven.plugin.assembly.utils.AssemblyFormatUtils;
 import org.apache.maven.project.MavenProject;
 
@@ -29,13 +28,8 @@ public class BundleConfiguration
 
     private String tarLongFileMode = "gnu";
 
-    private List<String> excludes = new ArrayList<String>();
-
-    private List<String> includes = new ArrayList<String>();
-
     public BundleConfiguration()
     {
-
     }
 
     public BundleConfiguration( final MavenProject project, final MavenSession session )
@@ -221,69 +215,9 @@ public class BundleConfiguration
         return false;
     }
 
-    public List<String> getExcludes()
-    {
-        return excludes;
-    }
-
-    public void addExclude( final String exclude )
-    {
-        if ( excludes == null )
-        {
-            excludes = new ArrayList<String>();
-        }
-
-        excludes.add( exclude );
-    }
-
-    public void setExcludes( final List<String> excludes )
-    {
-        this.excludes = excludes;
-    }
-
-    public List<String> getIncludes()
-    {
-        return includes;
-    }
-
-    public void addInclude( final String include )
-    {
-        if ( includes == null )
-        {
-            includes = new ArrayList<String>();
-        }
-
-        includes.add( include );
-    }
-
-    public void setIncludes( final List<String> includes )
-    {
-        this.includes = includes;
-    }
-
     public String getAssemblyFileName( final Assembly assembly )
     {
         return AssemblyFormatUtils.getDistributionName( assembly, this );
     }
 
-    public void configureAssembly( final Assembly assembly )
-    {
-        FileSet fs = (FileSet) assembly.getFileSets().get( 0 );
-
-        if ( includes != null && !includes.isEmpty() )
-        {
-            for ( String include : includes )
-            {
-                fs.addInclude( include );
-            }
-        }
-
-        if ( excludes != null && !excludes.isEmpty() )
-        {
-            for ( String exclude : excludes )
-            {
-                fs.addExclude( exclude );
-            }
-        }
-    }
 }

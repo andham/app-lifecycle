@@ -25,11 +25,14 @@ import org.apache.maven.plugin.assembly.archive.AssemblyArchiver;
 import org.apache.maven.plugin.assembly.format.AssemblyFormattingException;
 import org.apache.maven.plugin.assembly.model.Assembly;
 import org.apache.maven.plugin.assembly.model.FileItem;
-import org.apache.maven.plugin.assembly.model.FileSet;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
+import org.sonatype.maven.plugin.app.ClasspathUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Properties;
 
 /**
  * Create a plugin bundle.
@@ -69,13 +72,7 @@ public class CreateBundleMojo
      */
     private MavenProjectHelper projectHelper;
 
-    /**
-     * The temporary working directory for storing classpath artifacts that should be bundled with the plugin.
-     * 
-     * @parameter default-value="${project.build.directory}/bundle-classpath"
-     */
-    private File classpathWorkdir;
-
+    @SuppressWarnings( "unchecked" )
     public void execute()
         throws MojoExecutionException
     {
@@ -84,12 +81,29 @@ public class CreateBundleMojo
         assembly.setId( "bundle" );
         assembly.setIncludeBaseDirectory( false );
 
-        FileSet fs = new FileSet();
-        fs.setDirectory( classpathWorkdir.getAbsolutePath() );
-        fs.setOutputDirectory( project.getGroupId() + "/" + project.getArtifactId() + "/" + project.getVersion()
-            + "/dependencies" );
+        try
+        {
+            Properties cpArtifacts = ClasspathUtils.read( project );
+            String outputDirectory =
+                project.getGroupId() + "/" + project.getArtifactId() + "/" + project.getVersion() + "/dependencies";
 
-        assembly.addFileSet( fs );
+            for ( Iterator it = cpArtifacts.keySet().iterator(); it.hasNext(); )
+            {
+                String destName = (String) it.next();
+                String sourcePath = cpArtifacts.getProperty( destName );
+
+                FileItem fi = new FileItem();
+                fi.setSource( sourcePath );
+                fi.setOutputDirectory( outputDirectory );
+                fi.setDestName( destName );
+
+                assembly.addFile( fi );
+            }
+        }
+        catch ( IOException e )
+        {
+            throw new MojoExecutionException( "Failed to create plugin bundle: " + e.getMessage(), e );
+        }
 
         FileItem fi = new FileItem();
         fi.setSource( project.getArtifact().getFile().getPath() );
@@ -105,8 +119,6 @@ public class CreateBundleMojo
         {
             bundle.initDefaults( project, session );
         }
-
-        bundle.configureAssembly( assembly );
 
         try
         {

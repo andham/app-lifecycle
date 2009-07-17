@@ -24,15 +24,8 @@
       </configuration>
     </component>
     <component>
-      <role>org.sonatype.maven.plugin.app.AppMapping</role>
-      <implementation>org.sonatype.maven.plugin.app.AppMapping</implementation>
-      <configuration>
-        <coreGroupIdPatterns>
-          <coreGroupIdPattern>org.sonatype.nexus</coreGroupIdPattern>
-          <coreGroupIdPattern>com.sonatype.nexus</coreGroupIdPattern>
-        </coreGroupIdPatterns>
-        <pluginPackaging>nexus-plugin</pluginPackaging>
-      </configuration>
+      <role>org.sonatype.maven.plugin.app.ApplicationInformation</role>
+      <implementation>org.sonatype.maven.plugin.app.nexus.NexusApplicationInformation</implementation>
     </component>
   </components>
 </component-set>
