@@ -7,6 +7,7 @@
       <item name="Creating a Plugin Type" href="guide-new-plugin-type.html"/>
     </menu>
     <menu name="Reference">
+      <item name="Base Lifecycle Javadocs" href="app-lifecycle-base/apidocs/index.html"/>
       <item name="Plugin Javadocs" href="app-lifecycle-maven-plugin/apidocs/index.html"/>
     </menu>
     <menu ref="reports"/>
