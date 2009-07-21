@@ -9,6 +9,7 @@
     <menu name="Reference">
       <item name="Plugin Javadocs" href="app-lifecycle-maven-plugin/apidocs/index.html"/>
     </menu>
+    <menu ref="reports"/>
   </body>
 </project>
       
