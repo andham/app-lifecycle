@@ -13,6 +13,11 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Check that any application plugin dependencies are specified with 'provided' scope, along with any dependencies that
+ * have a groupId that belongs in the application's core. Specifying these as 'provided' scope means that the plugin
+ * expects its runtime environment to provide them, which in the case of core dependencies and other plugins, is
+ * appropriate.
+ * 
  * @goal check-dependencies
  * @requiresDependencyResolution runtime
  * @phase initialize
@@ -29,6 +34,8 @@ public class ValidateDependenciesMojo
     private MavenProject project;
 
     /**
+     * Application-specific configuration defaults that allow this mojo to remain application agnostic.
+     * 
      * @component
      */
     private ApplicationInformation mapping;

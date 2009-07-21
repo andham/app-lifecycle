@@ -1,0 +1,14 @@
+<project name="${project.name}">
+  <publishDate position="left"/>
+  <version position="left"/>
+  <body>
+    <menu name="Overview">
+      <item name="Introduction" href="index.html"/>
+      <item name="Supporting a New Plugin Type" href="guide-new-plugin-type.html"/>
+    </menu>
+    <menu name="Reference">
+      <item name="Plugin Javadocs" href="app-lifecycle-maven-plugin/apidocs/index.html"/>
+    </menu>
+  </body>
+</project>
+      

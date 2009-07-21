@@ -34,10 +34,10 @@ import java.util.Set;
 
 /**
  * Injects an {@link ArtifactHandler} instance, loaded from build extensions, into the current project's
- * {@link Artifact} instance. The new handler is loaded using the project's packaging.
+ * {@link Artifact} instance. The new handler is loaded using the project's packaging. This mojo compensates for bugs in
+ * the build-extension handling of Maven versions prior to 2.2.1.
  * 
  * @goal inject-artifact-handler
- * 
  * @phase initialize
  */
 public class InjectArtifactHandlerMojo

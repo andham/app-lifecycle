@@ -12,6 +12,13 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.Set;
 
+/**
+ * Utility methods to read and write a mapping document for non-plugin dependency artifacts used in an application
+ * plugin.
+ * 
+ * @author jdcasey
+ * 
+ */
 public final class ClasspathUtils
 {
 

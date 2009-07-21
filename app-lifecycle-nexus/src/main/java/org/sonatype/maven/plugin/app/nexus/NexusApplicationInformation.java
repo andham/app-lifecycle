@@ -2,6 +2,13 @@ package org.sonatype.maven.plugin.app.nexus;
 
 import org.sonatype.maven.plugin.app.ApplicationInformation;
 
+/**
+ * Implementation of {@link ApplicationInformation}, which supplies Nexus-specific default configurations, plugin
+ * packaging, and application-core groupIds. This is simpler to maintain for now than an XML configuration.
+ * 
+ * @author jdcasey
+ * 
+ */
 public class NexusApplicationInformation
     extends ApplicationInformation
 {

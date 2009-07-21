@@ -14,11 +14,114 @@
   <packaging>pom</packaging>
   <name>App Lifecycle Tools</name>
   
+  <description>suite of build extensions and associated plugin to support building plugins for different types of applications that use a common plugin-descriptor format, bundling scheme, etc.</description>
+  
   <modules>
     <module>app-lifecycle-assembly-descriptor</module>
     <module>app-lifecycle-maven-plugin</module>
     <module>app-lifecycle-base</module>
     <module>app-lifecycle-nexus</module>
   </modules>
+  
+	<profiles>
+	  <profile>
+	    <id>plugin-checks</id>
+	    <build>
+    	  <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-docck-plugin</artifactId>
+            <version>1.0</version>
+            <executions>
+              <execution>
+                <id>docck-check</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+    	  </plugins>
+	    </build>
+	  </profile>
+	</profiles>
+	
+	<reporting>
+	  <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+        <version>2.2</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>1.2</version>
+        <configuration>
+          <omitVisitors>UnreadFields</omitVisitors>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>2.1</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <targetJdk>1.5</targetJdk>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <tagletArtifacts>
+            <tagletArtifact>
+              <groupId>org.apache.maven.plugin-tools</groupId>
+              <artifactId>maven-plugin-tools-javadoc</artifactId>
+              <version>2.5</version>
+            </tagletArtifact>
+            <tagletArtifact>
+              <groupId>org.codehaus.plexus</groupId>
+              <artifactId>plexus-javadoc</artifactId>
+              <version>1.0</version>
+            </tagletArtifact>
+          </tagletArtifacts>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.1.1</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <!-- Broken, don't know why. -->
+              <report>dependencies</report>
+              <report>project-team</report>
+              <report>mailing-list</report>
+              <report>cim</report>
+              <report>issue-tracking</report>
+              <report>license</report>
+              <report>scm</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+	  </plugins>
+	</reporting>
+	
+	<ciManagement>
+	  <system>Hudson</system>
+	  <url>https://grid.sonatype.org/ci/job/nexus-maven-plugin-trunk/</url>
+	</ciManagement>
+	
+  <issueManagement>
+    <system>JIRA</system>
+    <url>https://issues.sonatype.org/browse/NEXUS</url>
+  </issueManagement>
   
 </project>

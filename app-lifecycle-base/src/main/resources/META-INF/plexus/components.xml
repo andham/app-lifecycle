@@ -4,6 +4,13 @@
       <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
       <role-hint>abstract-plugin</role-hint>
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <description>
+        Abstract lifecycle mapping for an application plugin build. These plugins all build in basically
+        the same way, are assembled the same way for installation in the applicatin, and share a
+        common plugin descriptor format. Therefore, the only thing we need to do for new applications
+        supporting this sort of plugin system is alias this abstract mapping using 
+        org.sonatype.maven.plugin.app.DelegatingLifecyleMapping.
+      </description>
       <configuration>
         <lifecycles>
           <lifecycle>

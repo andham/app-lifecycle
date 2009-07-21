@@ -93,10 +93,7 @@ public class PluginDescriptorMojo
      * The list of user defined MIME types
      * 
      * @parameter
-     * @deprecated Not sure why this is here, but it's not used. (jdcasey)
      */
-    @Deprecated
-    @SuppressWarnings( "unused" )
     private List<String> userMimeTypes;
 
     /**

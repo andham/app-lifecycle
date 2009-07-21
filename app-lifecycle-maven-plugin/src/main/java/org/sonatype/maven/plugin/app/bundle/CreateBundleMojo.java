@@ -35,7 +35,7 @@ import java.util.Iterator;
 import java.util.Properties;
 
 /**
- * Create a plugin bundle.
+ * Create a plugin bundle artifact attach it to the plugin's project.
  * 
  * @goal create-bundle
  * @phase package
@@ -44,6 +44,8 @@ public class CreateBundleMojo
     extends AbstractMojo
 {
     /**
+     * The current plugin project being built.
+     * 
      * @parameter default-value="${project}"
      * @required
      * @readonly
@@ -51,6 +53,8 @@ public class CreateBundleMojo
     private MavenProject project;
 
     /**
+     * The current build session, for reference from the Assembly API.
+     * 
      * @parameter default-value="${session}"
      * @required
      * @readonly
@@ -58,16 +62,23 @@ public class CreateBundleMojo
     private MavenSession session;
 
     /**
+     * Supplemental plugin assembly configuration.
+     * 
      * @parameter
      */
     private BundleConfiguration bundle;
 
     /**
+     * Assembly manager component that is responsible for creating the plugin bundle assembly and attaching it to the
+     * current project.
+     * 
      * @component
      */
     private AssemblyArchiver archiver;
 
     /**
+     * Component used by the {@link AssemblyArchiver} to attach the bundle artifact to the current project.
+     * 
      * @component
      */
     private MavenProjectHelper projectHelper;

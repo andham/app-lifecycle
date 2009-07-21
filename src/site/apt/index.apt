@@ -1,0 +1,14 @@
+  ---
+  Application Build Lifecycles
+  ---
+  John Casey
+  ---
+  21 July 2009
+  ---
+  
+Custom Build Lifecycles for Applications
+
+  This project consists of a series of build extensions, an abstract build extension, an assembly descriptor,
+  and a plugin. All of these parts are used to support applying a single, generalized build lifecycle to 
+  a large number of applications, all of which make use of plugins that contain similar wiring information
+  and are assembled in similar ways.

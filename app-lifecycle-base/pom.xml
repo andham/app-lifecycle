@@ -19,6 +19,7 @@
     </dependency>
   </dependencies>
   
+  <description>Base classes and component definitions for an application-specific plugin packaging extension. This is an ABSTRACT project, and SHOULD NOT be used directly.</description>
   <build>
     <resources>
       <resource>

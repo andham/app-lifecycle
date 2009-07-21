@@ -4,6 +4,11 @@
       <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
       <role-hint>nexus-plugin</role-hint>
       <implementation>org.sonatype.maven.plugin.app.DelegatingLifecyleMapping</implementation>
+      <description>
+        Delegates to org.apache.maven.lifecycle.mapping.LifecycleMapping with role-hint of 'abstract-plugin',
+        effectively aliasing that component, so a single lifecycle mapping component can be used for
+        multiple apps with minimal effort, as long as those apps adhere to the common plugin layout.
+      </description>
       <requirements>
         <requirement>
 	      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
@@ -15,6 +20,10 @@
       <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
       <role-hint>nexus-plugin</role-hint>
       <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
+      <description>
+        Provides a custom artifact handler to map the 'nexus-plugin' dependency type and POM packaging
+        to the 'jar' file extension in the Maven repository.
+      </description>
       <configuration>
         <type>nexus-plugin</type>
         <extension>jar</extension>
@@ -26,6 +35,11 @@
     <component>
       <role>org.sonatype.maven.plugin.app.ApplicationInformation</role>
       <implementation>org.sonatype.maven.plugin.app.nexus.NexusApplicationInformation</implementation>
+      <description>
+        Map in Nexus-specific directory layouts, application defaults, etc. for the app-lifecycle
+        mojos to use. This allows the mojos to remain general in nature, without needing to know anything
+        about the application being built directly.
+      </description>
     </component>
   </components>
 </component-set>

@@ -16,6 +16,7 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>app-lifecycle-base</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
   

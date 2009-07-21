@@ -1,0 +1,261 @@
+  ---
+  Creating a New Application Plugin Type
+  ---
+  John Casey
+  ---
+  20 July 2009
+  ---
+  
+Guide to Creating a New Application Plugin Type
+
+  This suite of build extensions and supporting plugin allows multiple applications to share a single
+  plugin format, with common plugin descriptor format and a common plugin-bundle layout. Adding support
+  for a new application is straightforward; simply create an application-specific build extension, then
+  use it in plugin builds for that application.
+  
+*Overview: the <<<app-lifecycle-base>>> Abstract Build Extension
+
+  Much of the configuration required for a new application-plugin build lifecycle is actually contained
+  in two artifacts plugin developers will never need to touch. First is the <<<app-lifecycle-maven-plugin>>> itself,
+  which contains the general logic necessary to verify constraints on application plugins, generate plugin
+  descriptors in a common XML format, and finally bundle the plugin up into a zip file containing all 
+  non-core classpath elements specific to that plugin.
+  
+  The second - the abstract <<<app-lifecycle-base>>> build extension - is a little more interesting. This
+  project contains the essential lifecycle mapping that defines the basic steps necessary to build any
+  conforming application plugin. Think of this as a variant of the typical 'jar' lifecycle, except that
+  it adds in the mojos from the <<<app-lifecycle-maven-plugin>>> which are necessary to turn what would be
+  a simple jar into an application plugin ready for deployment. In addition, this project contains two classes:
+  <<<ApplicationInformation>>>, and <<<DelegatingLifecycleMapping>>>. The former provides a way for app-specific
+  build extensions to provide information specfic to that application, so the app-lifecycle mojos can
+  remain application agnostic. The latter allows app-specific extensions to alias the abstract lifecycle
+  mapping with minimal effort.
+  
+  The <<<app-lifecycle-base>>> artifact is a somewhat exotic case, since <it is never directly used
+  as a POM build extension>. Instead, this artifact is meant to be bundled with the application-specific
+  build extension, using the Assembly plugin configuration available in the <<<app-lifecycle-assembly-descriptor>>> 
+  artifact. The reason for this consolidation step is to make the build extension completely self-contained,
+  so Maven will load it directly into its core runtime classloader. This compensates for a quirk of Maven's 
+  extension system in 2.x, that any extension which has dependencies is loaded into a child classloader which
+  is essentially sealed off from the build for all but wagon components. Finally, after the build extension
+  is created, we can add it to our application's plugin POMs and publish it in order to provide a standard
+  build environment for others to use.
+  
+*Creating the Application-Specific Extension
+
+  Our application-specific build extension can be as simple as a single file -  
+  <<<src/main/resources/META-INF/plexus/components.xml>>> - which contains the component definitions that
+  define the build environment for our application's plugins.
+  
+  This file contains three component definitions: a lifecycle mapping, an artifact handler, and a configured
+  ApplicationInformation component. The first aliases the <<<abstract-plugin>>> lifecycle mapping component 
+  from the <<<app-lifecycle-base>>> artifact, the second maps a POM packaging and dependency type for our new 
+  plugin to the 'jar' extension, and the last one supplies default configuration specific to the application
+  for the <<<app-lifecycle-maven-plugin>>> to use. Without the custom artifact handler, our plugins will be 
+  installed into the repository with extensions like 'app-plugin'. Without the custom ApplicationInformation
+  component, the app-lifecycle mojos will have no idea what path to use when rendering the plugin descriptor,
+  or which groupIds and packaging mark a dependency as managed by the application's core.
+  
+  The following is an example of the components.xml file, which could have been used in the <<<app-lifecycle-nexus>>>
+  build extension:
+  
++---+
+<component-set>
+  <components>
+    <component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>nexus-plugin</role-hint>
+      <implementation>org.sonatype.maven.plugin.app.DelegatingLifecyleMapping</implementation>
+      <description>
+        Delegates to org.apache.maven.lifecycle.mapping.LifecycleMapping with role-hint of 'abstract-plugin',
+        effectively aliasing that component, so a single lifecycle mapping component can be used for
+        multiple apps with minimal effort, as long as those apps adhere to the common plugin layout.
+      </description>
+      <requirements>
+        <requirement>
+	      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+	      <role-hint>abstract-plugin</role-hint>
+        </requirement>
+      </requirements>
+    </component>
+    <component>
+      <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
+      <role-hint>nexus-plugin</role-hint>
+      <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
+      <description>
+        Provides a custom artifact handler to map the 'nexus-plugin' dependency type and POM packaging
+        to the 'jar' file extension in the Maven repository.
+      </description>
+      <configuration>
+        <type>nexus-plugin</type>
+        <extension>jar</extension>
+        <language>java</language>
+        <!-- <classifier>bundle</classifier> -->
+        <addedToClasspath>true</addedToClasspath>
+      </configuration>
+    </component>
+    <component>
+      <role>org.sonatype.maven.plugin.app.ApplicationInformation</role>
+      <implementation>org.sonatype.maven.plugin.app.ApplicationInformation</implementation>
+      <description>
+        Map in Nexus-specific directory layouts, application defaults, etc. for the app-lifecycle
+        mojos to use. This allows the mojos to remain general in nature, without needing to know anything
+        about the application being built directly.
+      </description>
+      <configuration>
+        <coreGroupIdPatterns>
+          <coreGroupIdPattern>org.sonatype.nexus</coreGroupIdPattern>
+          <coreGroupIdPattern>com.sonatype.nexus</coreGroupIdPattern>
+        </coreGroupIdPatterns>
+        <pluginPackaging>nexus-plugin</pluginPackaging>
+        
+        <applicationId>nexus</applicationId>
+        <applicationMinVersion>1.4.0</applicationMinVersion>
+        <applicationEdition>OSS</applicationEdition>
+        
+        <pluginMetadataPath>${project.build.outputDirectory}/META-INF/nexus/plugin.xml</pluginMetadataPath>
+        <userMimeTypesPath>${project.build.outputDirectory}/META-INF/nexus/userMimeTypes.properties</userMimeTypesPath>
+      </configuration>
+    </component>
+  </components>
+</component-set>
++---+
+
+  You'll notice I said "could have been." The main difference between the above component definitions and what
+  is actually contained in <<<app-lifecycle-nexus>>> is the ApplicationInformation component definition. Here
+  is the definition that is <actually> supplied with the Nexus extension:
+  
++---+
+    <component>
+      <role>org.sonatype.maven.plugin.app.ApplicationInformation</role>
+      <implementation>org.sonatype.maven.plugin.app.nexus.NexusApplicationInformation</implementation>
+      <description>
+        Map in Nexus-specific directory layouts, application defaults, etc. for the app-lifecycle
+        mojos to use. This allows the mojos to remain general in nature, without needing to know anything
+        about the application being built directly.
+      </description>
+    </component>
++---+
+
+  Either way of configuring the ApplicationInformation component is fine. The first one offers the benefit of filterability;
+  that is, we can use Maven's resource-filtering features to resolve POM expressions when we build the extension artifact.
+  On the other hand, this can make it difficult to specify paths that use POM expressions that are meant to be resolved when 
+  the plugin build executes, such as those for <<<pluginMetadataPath>>> or <<<userMimeTypesPath>>> above. In such cases, it
+  may make sense to use a hybrid approach, providing an ApplicatinInformation implementation that specifies the path configurations
+  in its constructor, while still allowing configuration via components.xml, which is filtered during the extension build process.
+  
+  <<NOTE:>> Also, notice the lack of a <<<role-hint>>> for the ApplicationInformation component. This is
+  a critical point: <<We should NOT have more than one of these components present for any given plugin build>>. This
+  is a mapping component which is injected to the app-lifecycle plugins without a hint (so it can remain application-agnostic), and
+  providing more than one mapping in a given build doesn't make any sense.
+
+*Building the Extension
+
+  Once we've defined the components that support our new plugin type, it's time to configure a Maven build that will
+  consolidate the <<<app-lifecycle-base>>> dependency into our new lifecycle project, producing one jar that can be used
+  as a build extension. First, add the dependency to the POM:
+  
++---+
+<dependencies>
+  <dependency>
+    <groupId>org.sonatype.plugins</groupId>
+    <artifactId>app-lifecycle-base</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <scope>provided</scope>
+  </dependency>
+</dependencies>
++---+
+
+  In truth, if we're using an IDE such as Eclipse to create the new build extension, we will have already added this dependency.
+  <<However>>, it's critical to remember to set the scope of this dependency to <<<provided>>>. Additionally, this should be the
+  only dependency (since we're just defining the way Maven will handle your new plugin type, there should be no need for others).
+  Marking this dependency as <<<provided>>> ensures that Maven resolves only one artifact when it resolves the build
+  extension, and therefore adds the extension directly to its core runtime classloader. This ensures that the new AritfactHandler
+  definition for our plugin packaging is usable.
+  
+  Once we've added the <<<app-lifecycle-base>>> dependency, it's time to configure the assembly plugin to bundle the abstract
+  base-lifecycle with our new component definitions, in order to create a single, self-contained build extension. To do this, we
+  rely on the custom assembly descriptor <<<lifecycle-bundle>>>, provided in the <<<app-lifecycle-assembly-descriptor>>> artifact.
+  The resulting assembly plugin configuration looks like this:
+  
++---+
+<build>
+  <plugins>
+    <plugin>
+      <artifactId>maven-assembly-plugin</artifactId>
+      <version>2.2-beta-4</version>
+      <dependencies>
+        <dependency>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>app-lifecycle-assembly-descriptor</artifactId>
+          <version>1.0-SNAPSHOT</version>
+        </dependency>
+      </dependencies>
+      <executions>
+        <execution>
+          <id>assembly</id>
+          <phase>package</phase>
+          <goals>
+            <goal>single</goal>
+          </goals>
+          <configuration>
+            <descriptorRefs>
+              <descriptorRef>lifecycle-bundle</descriptorRef>
+            </descriptorRefs>
+            <appendAssemblyId>false</appendAssemblyId>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+</build>
++---+
+
+  The above configuration adds a plugin-level dependency on the <<<app-lifecycle-assembly-descriptor>>> artifact, which tells
+  Maven to load this artifact into the plugin's classloader before executing any mojos from that plugin. Next, we make immediate
+  use of the custom plugin-level dependency by configuring an execution block to use the <<<descriptorRef>>> called <<<lifecycle-bundle>>>.
+  This means the assembly plugin will search its classpath for a resource called <<<assemblies/lifecycle-bundle.xml>>>, and use
+  it to create our extension bundle. Ordinarily, the assembly plugin would use the descriptor to create one or more archive files
+  named $\{project.artifactId}-$\{project.version}-$\{assembly.id}.$\{assembly.format}, then attach them <alongside> the main project
+  artifact.
+  
+  However, the <<<appendAssemblyId>>> configuration above (which is set to <<<false>>>) tells Maven to use the name given to the
+  main project artifact (normally $\{project.build.finalName}) and use the assembly archive as the project's main build result. 
+  Effectively, this means the output of the assembly plugin is the end result of our build, not the normal file produced by the 
+  jar plugin. This is appropriate in our case, since the only way we'll ever use this artifact is in the build extensions section
+  of a plugin POM.
+  
+  To finish, simply build the project with Maven:
+
++---+
+mvn clean install
++---+
+
+*Using Your Extension to Build a Plugin
+
+  Once the new app-specific plugin lifecycle extension is installed or deployed, we're ready to begin using it. This is the 
+  easiest step of all, requiring only a simple build extension declaration in the plugin POM:
+  
++---+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>app-lifecycle-nexus</artifactId>
+        <version>1.0-SNAPSHOT</version>
+      </extension>
+    </extensions>
+  </build>
++---+
+
+  When we add the above to our plugin's POM and run the build, we can see Maven executing the custom steps that make our plugin
+  build different from a normal jar:
+  
++---+
+...
+[INFO] [app-lifecycle:inject-artifact-handler {execution: default-inject-artifact-handler}]
+...
++---+
+
+  <<NOTE:>> When building a large number of plugins, it may make more sense to add the lifecycle build extension in the parent POM.
+

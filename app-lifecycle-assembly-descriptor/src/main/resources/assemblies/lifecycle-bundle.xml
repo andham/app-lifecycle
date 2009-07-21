@@ -6,6 +6,7 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <dependencySets>
     <dependencySet>
+      <scope>provided</scope>
       <useProjectArtifact>true</useProjectArtifact>
       <useTransitiveDependencies>false</useTransitiveDependencies>
       <includes>

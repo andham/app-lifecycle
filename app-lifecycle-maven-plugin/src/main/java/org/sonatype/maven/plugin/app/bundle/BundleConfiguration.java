@@ -12,6 +12,16 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Supplemental configuration for plugin bundle assemblies, to allow users to customize the finalName, archive
+ * configuration (the {@link MavenArchiveConfiguration} instance), and tarLongFileMode. This class is similar to the
+ * plugin parameters available in the Assembly plugin itself.
+ * 
+ * @see {@link http://maven.apache.org/plugins/maven-assembly-plugin/}
+ * 
+ * @author jdcasey
+ * 
+ */
 public class BundleConfiguration
     implements AssemblerConfigurationSource
 {
