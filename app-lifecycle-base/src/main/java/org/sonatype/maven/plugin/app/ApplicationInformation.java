@@ -99,7 +99,7 @@ public class ApplicationInformation
     /**
      * Determine whether the specified groupId matches any of those specified as core groupIds for this application. If
      * there are no application core groupIds, return false. If the groupId matches one of the core groupIds using
-     * {@link String#startsWith(String)}, or using {@link String#matches(String)}, then return true.
+     * {@link String#equals(String)}, or using {@link String#matches(String)}, then return true.
      */
     public boolean matchesCoreGroupIds( final String groupId )
     {
@@ -108,7 +108,7 @@ public class ApplicationInformation
         {
             for ( String pattern : getCoreGroupIdPatterns() )
             {
-                if ( groupId.startsWith( pattern ) || groupId.matches( pattern ) )
+                if ( groupId.equals( pattern ) || groupId.matches( pattern ) )
                 {
                     matchedCoreGroupId = true;
                     break;
