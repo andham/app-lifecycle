@@ -98,7 +98,7 @@ public class CreateBundleMojo
         {
             Properties cpArtifacts = ClasspathUtils.read( project );
             String outputDirectory =
-                project.getGroupId() + "/" + project.getArtifactId() + "/" + project.getVersion() + "/dependencies";
+ project.getArtifactId() + "-" + project.getVersion() + "/dependencies";
 
             for ( Iterator it = cpArtifacts.keySet().iterator(); it.hasNext(); )
             {
@@ -120,7 +120,7 @@ public class CreateBundleMojo
 
         FileItem fi = new FileItem();
         fi.setSource( project.getArtifact().getFile().getPath() );
-        fi.setOutputDirectory( project.getGroupId() + "/" + project.getArtifactId() + "/" + project.getVersion() );
+        fi.setOutputDirectory( project.getArtifactId() + "-" + project.getVersion() );
 
         assembly.addFile( fi );
 
