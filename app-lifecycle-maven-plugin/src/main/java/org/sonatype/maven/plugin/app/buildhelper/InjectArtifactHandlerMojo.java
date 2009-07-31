@@ -84,8 +84,9 @@ public class InjectArtifactHandlerMojo
         throws MojoExecutionException
     {
         ArtifactVersion currentVersion = ri.getApplicationVersion();
-        ArtifactVersion requiredVersion = new DefaultArtifactVersion( "2.2.1" );
-        if ( requiredVersion.compareTo( currentVersion ) <= 0 )
+        ArtifactVersion maxUsageVersion = new DefaultArtifactVersion( "2.2.0" );
+
+        if ( maxUsageVersion.compareTo( currentVersion ) <= 0 )
         {
             getLog().debug(
                             "This version of Maven does not require injection of custom ArtifactHandlers using this code. Skipping." );
