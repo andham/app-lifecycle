@@ -22,7 +22,10 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.artifact.handler.manager.DefaultArtifactHandlerManager;
+import org.apache.maven.artifact.versioning.ArtifactVersion;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.execution.RuntimeInformation;
 import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -69,12 +72,26 @@ public class InjectArtifactHandlerMojo
      */
     private MavenSession session;
 
+    /**
+     * @component
+     */
+    private RuntimeInformation ri;
+
     private Log log;
 
     @SuppressWarnings( "unchecked" )
     public void execute()
         throws MojoExecutionException
     {
+        ArtifactVersion currentVersion = ri.getApplicationVersion();
+        ArtifactVersion requiredVersion = new DefaultArtifactVersion( "2.2.1" );
+        if ( requiredVersion.compareTo( currentVersion ) <= 0 )
+        {
+            getLog().debug(
+                            "This version of Maven does not require injection of custom ArtifactHandlers using this code. Skipping." );
+            return;
+        }
+
         Map<String, ?> handlerDescriptors = session.getContainer().getComponentDescriptorMap( ArtifactHandler.ROLE );
         if ( handlerDescriptors != null )
         {
