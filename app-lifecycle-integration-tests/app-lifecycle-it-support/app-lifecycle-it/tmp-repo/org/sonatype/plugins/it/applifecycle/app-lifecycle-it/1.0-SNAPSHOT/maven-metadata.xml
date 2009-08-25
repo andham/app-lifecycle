@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>org.sonatype.plugins.it.applifecycle</groupId>
+  <artifactId>app-lifecycle-it</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20090825.171306</timestamp>
+      <buildNumber>1</buildNumber>
+    </snapshot>
+    <lastUpdated>20090825171311</lastUpdated>
+  </versioning>
+</metadata>
