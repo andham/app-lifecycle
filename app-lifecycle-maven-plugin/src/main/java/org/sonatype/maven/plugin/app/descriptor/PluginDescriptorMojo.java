@@ -208,7 +208,10 @@ public class PluginDescriptorMojo
 
                 if ( artifact.getType().equals( mapping.getPluginPackaging() ) )
                 {
-                    artifactCoordinate.setVersion( artifact.getBaseVersion() );
+                    if ( artifact.isSnapshot() )
+                    {
+                        artifactCoordinate.setVersion( artifact.getBaseVersion() );
+                    }
 
                     if ( !Artifact.SCOPE_PROVIDED.equals( artifact.getScope() ) )
                     {

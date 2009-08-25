@@ -97,8 +97,7 @@ public class CreateBundleMojo
         try
         {
             Properties cpArtifacts = ClasspathUtils.read( project );
-            String outputDirectory =
- project.getArtifactId() + "-" + project.getVersion() + "/dependencies";
+            String outputDirectory = project.getArtifactId() + "-" + project.getVersion() + "/dependencies";
 
             for ( Iterator it = cpArtifacts.keySet().iterator(); it.hasNext(); )
             {
