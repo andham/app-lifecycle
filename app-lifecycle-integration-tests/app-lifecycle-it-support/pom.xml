@@ -4,7 +4,7 @@
   <parent>
     <artifactId>app-lifecycle-integration-tests</artifactId>
     <groupId>org.sonatype.plugins.it.applifecycle</groupId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
   </parent>
   
   <artifactId>app-lifecycle-it-support</artifactId>
