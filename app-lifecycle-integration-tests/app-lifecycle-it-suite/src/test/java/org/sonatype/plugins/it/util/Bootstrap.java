@@ -36,6 +36,8 @@ public class Bootstrap
                         + " not found. Maybe we're executing with deployed supporting artifacts?" );
                 }
             }
+
+						snapshotRepositoriesInstalled = true;
         }
 
         return REMOTE_REPOSITORY_TARGET;
