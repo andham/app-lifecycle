@@ -12,6 +12,8 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   
+  <name>App-Lifecycle Integration Test Parent</name>
+  
   <modules>
     <module>app-lifecycle-it-support</module>
     <module>app-lifecycle-it-suite</module>
