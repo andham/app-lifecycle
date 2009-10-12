@@ -40,7 +40,6 @@ public class NexusApplicationInformation
 
         setApplicationId( "nexus" );
         setPluginMetadataPath( "${project.build.outputDirectory}/META-INF/nexus/plugin.xml" );
-        setUserMimeTypesPath( "${project.build.outputDirectory}/META-INF/nexus/userMimeTypes.properties" );
 
         setApplicationMinVersion( "1.4.0" );
 

@@ -39,7 +39,6 @@ public class ITApplicationInformation
 
         setApplicationId( "it" );
         setPluginMetadataPath( "${project.build.outputDirectory}/META-INF/it/plugin.xml" );
-        setUserMimeTypesPath( "${project.build.outputDirectory}/META-INF/it/userMimeTypes.properties" );
 
         setApplicationMinVersion( "1.0" );
 

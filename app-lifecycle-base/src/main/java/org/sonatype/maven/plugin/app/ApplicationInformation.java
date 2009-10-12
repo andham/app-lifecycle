@@ -64,8 +64,6 @@ public class ApplicationInformation
 
     private String applicationId;
 
-    private String userMimeTypesPath;
-
     private String applicationMinVersion;
 
     private String applicationMaxVersion;
@@ -82,18 +80,6 @@ public class ApplicationInformation
         throws InterpolationException
     {
         return interpolateToFile( getPluginMetadataPath(), project );
-    }
-
-    /**
-     * Interpolate any project references in the user mime-types output path, returning a {@link File} reference to the
-     * interpolated path.
-     * 
-     * @see ApplicationInformation#setUserMimeTypesPath(String)
-     */
-    public File getUserMimeTypesFile( final MavenProject project )
-        throws InterpolationException
-    {
-        return interpolateToFile( getUserMimeTypesPath(), project );
     }
 
     /**
@@ -203,24 +189,6 @@ public class ApplicationInformation
     public void setApplicationId( final String applicationId )
     {
         this.applicationId = applicationId;
-    }
-
-    /**
-     * @see ApplicationInformation#setUserMimeTypesPath(String)
-     */
-    public String getUserMimeTypesPath()
-    {
-        return userMimeTypesPath;
-    }
-
-    /**
-     * Path where the mime-type properties file can be written during the build, if mime-types are specified. This path
-     * may make reference to Maven project expressions just like any plugin or POM would. <br/>
-     * Normally, this path will start with ${project.build.outputDirectory/META-INF/.
-     */
-    public void setUserMimeTypesPath( final String userMimeTypesPath )
-    {
-        this.userMimeTypesPath = userMimeTypesPath;
     }
 
     /**

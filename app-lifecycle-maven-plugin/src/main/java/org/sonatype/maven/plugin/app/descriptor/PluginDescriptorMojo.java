@@ -18,6 +18,12 @@
  */
 package org.sonatype.maven.plugin.app.descriptor;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.model.License;
@@ -26,7 +32,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.interpolation.InterpolationException;
-import org.codehaus.plexus.util.IOUtil;
 import org.sonatype.maven.plugin.app.ApplicationInformation;
 import org.sonatype.maven.plugin.app.ClasspathUtils;
 import org.sonatype.plugin.ExtensionPoint;
@@ -35,14 +40,6 @@ import org.sonatype.plugin.metadata.GAVCoordinate;
 import org.sonatype.plugin.metadata.PluginMetadataGenerationRequest;
 import org.sonatype.plugin.metadata.PluginMetadataGenerator;
 import org.sonatype.plugin.metadata.gleaner.GleanerException;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
 
 /**
  * Generates a plugin's <tt>plugin.xml</tt> descriptor file based on the project's pom and class annotations.
@@ -107,22 +104,6 @@ public class PluginDescriptorMojo
      */
     private String applicationMaxVersion;
 
-    /**
-     * The list of user defined MIME types
-     * 
-     * @parameter
-     */
-    private List<String> userMimeTypes;
-
-    /**
-     * The output location for the generated plugin descriptor. <br/>
-     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included via build
-     * extension.
-     * 
-     * @parameter
-     */
-    private File userMimeTypesFile;
-
     /** @component */
     private PluginMetadataGenerator metadataGenerator;
 
@@ -147,29 +128,6 @@ public class PluginDescriptorMojo
         }
 
         initConfig();
-
-        // get the user customization
-        Properties userMimeTypes = null;
-
-        if ( userMimeTypes != null && !userMimeTypes.isEmpty() )
-        {
-            FileOutputStream fos = null;
-
-            try
-            {
-                fos = new FileOutputStream( userMimeTypesFile );
-
-                userMimeTypes.store( fos, "User MIME types" );
-            }
-            catch ( IOException e )
-            {
-                throw new MojoFailureException( "Cannot write the User MIME types file!", e );
-            }
-            finally
-            {
-                IOUtil.close( fos );
-            }
-        }
 
         PluginMetadataGenerationRequest request = new PluginMetadataGenerationRequest();
         request.setGroupId( this.mavenProject.getGroupId() );
@@ -299,19 +257,6 @@ public class PluginDescriptorMojo
     private void initConfig()
         throws MojoFailureException
     {
-        if ( userMimeTypesFile == null )
-        {
-            try
-            {
-                userMimeTypesFile = mapping.getUserMimeTypesFile( mavenProject );
-            }
-            catch ( InterpolationException e )
-            {
-                throw new MojoFailureException( "Cannot calculate User MIME types file location from expression: "
-                    + mapping.getUserMimeTypesPath(), e );
-            }
-        }
-
         if ( this.generatedPluginMetadata == null )
         {
             try
