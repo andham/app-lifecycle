@@ -51,6 +51,15 @@ import org.sonatype.plugin.metadata.gleaner.GleanerException;
 public class PluginDescriptorMojo
     extends AbstractMojo
 {
+
+    /**
+     * A list of groupId:artifactId references to non-plugin dependencies that contain components which should be
+     * gleaned for this plugin build.
+     * 
+     * @parameter
+     */
+    private List<String> componentDependencies;
+
     /**
      * The output location for the generated plugin descriptor. <br/>
      * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included via build
@@ -206,6 +215,12 @@ public class PluginDescriptorMojo
                                 continue artifactLoop;
                             }
                         }
+                    }
+
+                    if ( componentDependencies != null
+                        && componentDependencies.contains( artifact.getGroupId() + ":" + artifact.getArtifactId() ) )
+                    {
+                        artifactCoordinate.setHasComponents( true );
                     }
 
                     request.addClasspathDependency( artifactCoordinate );

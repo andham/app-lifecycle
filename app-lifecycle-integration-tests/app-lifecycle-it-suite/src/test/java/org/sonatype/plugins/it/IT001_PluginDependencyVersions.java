@@ -19,7 +19,6 @@ import java.util.Set;
 public class IT001_PluginDependencyVersions
 {
 
-    // @SuppressWarnings( "unchecked" )
     @Test
     public void run()
         throws IOException, URISyntaxException, VerificationException, JDOMException
