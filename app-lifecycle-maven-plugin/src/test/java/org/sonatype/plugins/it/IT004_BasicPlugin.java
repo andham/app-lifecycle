@@ -6,8 +6,9 @@ import static org.sonatype.plugins.it.util.TestUtils.getTestDir;
 import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
 import org.jdom.JDOMException;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.sonatype.plugins.it.util.ContentAssertions;
+import org.sonatype.plugins.it.util.GroovyAssertions;
 import org.sonatype.plugins.it.util.TestUtils;
 
 import java.io.File;
@@ -18,17 +19,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class IT004
+public class IT004_BasicPlugin
 {
 
     @Test
-    @Ignore
     public void run()
         throws IOException, URISyntaxException, VerificationException, JDOMException
     {
         bootstrap();
         
-        File dir = getTestDir( "001-pluginDependencyVersions" );
+        File dir = getTestDir( "004-basicPlugin" );
 
         String version = TestUtils.getPomVersion( new File( dir, "pom.xml" ) );
 
@@ -39,19 +39,17 @@ public class IT004
         verifier.verifyErrorFreeLog();
         verifier.resetStreams();
 
-        Map<String, Map<String, TestUtils.ContentMatchType>> requiredContent =
-            new HashMap<String, Map<String, TestUtils.ContentMatchType>>();
-
-        Map<String, TestUtils.ContentMatchType> content = new HashMap<String, TestUtils.ContentMatchType>();
-        content.put( "//pluginDependency[version/text()=\"1\"]", TestUtils.ContentMatchType.XPATH );
-
-        requiredContent.put( "META-INF/it/plugin.xml", content );
-
         Set<String> banned = Collections.emptySet();
 
-        File archive = new File( verifier.getBasedir(), "target/001-pluginDependencyVersions-" + version + ".jar" );
+        Map<String, Object> context = new HashMap<String, Object>();
+        context.put( "pomFile", new File( verifier.getBasedir(), "pom.xml" ) );
 
-        TestUtils.assertZipContents( requiredContent, banned, archive );
+        File groovy = new File( verifier.getBasedir(), "validate.groovy" );
+        ContentAssertions assertions = new GroovyAssertions( "META-INF/it/plugin.xml", groovy, context );
+
+        File archive = new File( verifier.getBasedir(), "target/004-basicPlugin-" + version + ".jar" );
+
+        TestUtils.assertZipContents( Collections.singleton( assertions ), banned, archive );
     }
 
 }

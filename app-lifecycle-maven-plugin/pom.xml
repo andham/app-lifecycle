@@ -110,6 +110,11 @@
     	<type>jar</type>
     	<scope>compile</scope>
     </dependency>
+    <dependency>
+    	<groupId>org.codehaus.groovy</groupId>
+    	<artifactId>groovy</artifactId>
+    	<version>1.6.0</version>
+    </dependency>
   </dependencies>
   
   <reporting>
@@ -121,6 +126,30 @@
       </plugin>
     </plugins>
   </reporting>
+  
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.4.3</version>
+          <executions>
+            <execution>
+              <id>default-test</id>
+              <configuration>
+                <excludes>
+                  <exclude>**/IT*</exclude>
+                  <exclude>**/util/*</exclude>
+                  <exclude>**/bootstrap/**/*</exclude>
+                  <exclude>**/00*/**/*</exclude>
+                </excludes>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
   
   <profiles>
     <profile>
@@ -159,8 +188,12 @@
                   </goals>
                   <configuration>
       	            <includes>
-      	              <include>**/IT*.java</include>
+      	              <include>**/IT*</include>
       	            </includes>
+                    <excludes>
+                      <exclude>**/bootstrap/**/*</exclude>
+                      <exclude>**/00*/**/*</exclude>
+                    </excludes>
                     <systemProperties>
                       <property>
                         <name>maven.repo.local</name>

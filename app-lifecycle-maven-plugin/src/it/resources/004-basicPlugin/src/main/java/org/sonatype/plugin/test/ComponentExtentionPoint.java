@@ -1,9 +1,9 @@
 package org.sonatype.plugin.test;
 
-import org.sonatype.plexus.plugin.ExtensionPoint;
+import org.sonatype.plugin.Managed;
 
-@ExtensionPoint
-public class ComponentManaged
+@Managed
+public class ComponentExtentionPoint
 {
 
     public String defines  = "an extention point";

@@ -7,14 +7,14 @@ import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
 import org.jdom.JDOMException;
 import org.junit.Test;
+import org.sonatype.plugins.it.util.ContentAssertions;
 import org.sonatype.plugins.it.util.TestUtils;
+import org.sonatype.plugins.it.util.XPathContentAssertions;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 public class IT003_NonPluginComponentDeps
@@ -37,21 +37,17 @@ public class IT003_NonPluginComponentDeps
         verifier.verifyErrorFreeLog();
         verifier.resetStreams();
 
-        Map<String, Map<String, TestUtils.ContentMatchType>> requiredContent =
-            new HashMap<String, Map<String, TestUtils.ContentMatchType>>();
+        Set<String> xpaths =
+            Collections.singleton( "//classpathDependency[artifactId/text()=\"it-component-dependency\" "
+                + "and hasComponents/text()=\"true\"]" );
 
-        Map<String, TestUtils.ContentMatchType> content = new HashMap<String, TestUtils.ContentMatchType>();
-        content.put(
-                     "//classpathDependency[artifactId/text()=\"it-component-dependency\" and hasComponents/text()=\"true\"]",
-                     TestUtils.ContentMatchType.XPATH );
-
-        requiredContent.put( "META-INF/it/plugin.xml", content );
+        ContentAssertions assertions = new XPathContentAssertions( "META-INF/it/plugin.xml", xpaths );
 
         Set<String> banned = Collections.emptySet();
 
         File archive = new File( verifier.getBasedir(), "target/003-nonPluginComponentDeps-" + version + ".jar" );
 
-        TestUtils.assertZipContents( requiredContent, banned, archive );
+        TestUtils.assertZipContents( Collections.singletonList( assertions ), banned, archive );
     }
 
 }

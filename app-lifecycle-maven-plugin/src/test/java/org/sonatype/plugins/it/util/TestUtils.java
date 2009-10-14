@@ -8,20 +8,18 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
-import org.jdom.xpath.XPath;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -29,13 +27,6 @@ import java.util.zip.ZipFile;
 public class TestUtils
 {
     
-    public enum ContentMatchType
-    {
-        STRING,
-        REGEX,
-        XPATH
-    };
-
     public static String getPomVersion( final File pomFile )
         throws JDOMException, IOException
     {
@@ -81,8 +72,7 @@ public class TestUtils
                                                                                                   File.separatorChar );
     }
 
-    // @SuppressWarnings( "unchecked" )
-    public static void assertZipContents( final Map<String, Map<String, TestUtils.ContentMatchType>> requiredContent,
+    public static void assertZipContents( final Collection<ContentAssertions> requiredContent,
                                           final Set<String> banned,
                                           final File assembly )
         throws ZipException, IOException, JDOMException
@@ -91,22 +81,15 @@ public class TestUtils
 
         ZipFile zf = new ZipFile( assembly );
 
-        // System.out.println( "Contents of: " + assembly + ":\n\n" );
-        // for( Enumeration<ZipEntry> e = (Enumeration<ZipEntry>) zf.entries(); e.hasMoreElements(); )
-        // {
-        // System.out.println( e.nextElement().getName() );
-        // }
-        // System.out.println( "\n\n" );
-
         Set<String> missing = new HashSet<String>();
-        Set<String> wrongContent = new HashSet<String>();
+        List<String> wrongContent = new ArrayList<String>();
 
-        entryIteration: for ( Map.Entry<String, Map<String, ContentMatchType>> entry : requiredContent.entrySet() )
+        for ( ContentAssertions entry : requiredContent )
         {
-            ZipEntry ze = zf.getEntry( entry.getKey() );
+            ZipEntry ze = zf.getEntry( entry.getArchivePath() );
             if ( ze == null )
             {
-                missing.add( entry.getKey() );
+                missing.add( entry.getArchivePath() );
                 continue;
             }
 
@@ -114,61 +97,10 @@ public class TestUtils
             IOUtil.copy( zf.getInputStream( ze ), sWriter );
 
             String content = sWriter.toString();
-            Document doc = null;
-            for ( Map.Entry<String, ContentMatchType> itemEntry : entry.getValue().entrySet() )
+            List<String> result = entry.assertContents( content );
+            if ( result != null && !result.isEmpty() )
             {
-                if ( itemEntry == null || itemEntry.getKey() == null )
-                {
-                    continue;
-                }
-
-                if ( itemEntry.getValue() == null || itemEntry.getValue() == ContentMatchType.STRING
-                    || ContentMatchType.valueOf( itemEntry.getValue().name() ) == null )
-                {
-                    if ( content.indexOf( itemEntry.getKey() ) < 0 )
-                    {
-                        wrongContent.add( entry.getKey() );
-                        continue entryIteration;
-                    }
-                }
-                else if ( itemEntry.getValue() == ContentMatchType.REGEX )
-                {
-                    try
-                    {
-                        Pattern p = Pattern.compile( itemEntry.getKey() );
-                        if ( !p.matcher( content ).find() )
-                        {
-                            wrongContent.add( entry.getKey() );
-                            continue entryIteration;
-                        }
-                    }
-                    catch ( PatternSyntaxException e )
-                    {
-                        throw new IllegalArgumentException( "Invalid REGEX pattern: '" + itemEntry.getKey()
-                            + "'. Reason: " + e.getMessage(), e );
-                    }
-                }
-                else if ( itemEntry.getValue() == ContentMatchType.XPATH )
-                {
-                    if ( doc == null )
-                    {
-                        doc = new SAXBuilder().build( new StringReader( content ) );
-                    }
-
-                    try
-                    {
-                        if ( XPath.selectSingleNode( doc.getRootElement(), itemEntry.getKey() ) == null )
-                        {
-                            wrongContent.add( entry.getKey() );
-                            continue entryIteration;
-                        }
-                    }
-                    catch ( JDOMException e )
-                    {
-                        throw new IllegalArgumentException( "Invalid XPath pattern: '" + itemEntry.getKey()
-                            + "'. Reason: " + e.getMessage(), e );
-                    }
-                }
+                wrongContent.addAll( result );
             }
         }
 

@@ -7,14 +7,14 @@ import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
 import org.jdom.JDOMException;
 import org.junit.Test;
+import org.sonatype.plugins.it.util.ContentAssertions;
 import org.sonatype.plugins.it.util.TestUtils;
+import org.sonatype.plugins.it.util.XPathContentAssertions;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 public class IT001_PluginDependencyVersions
@@ -37,19 +37,14 @@ public class IT001_PluginDependencyVersions
         verifier.verifyErrorFreeLog();
         verifier.resetStreams();
 
-        Map<String, Map<String, TestUtils.ContentMatchType>> requiredContent =
-            new HashMap<String, Map<String, TestUtils.ContentMatchType>>();
-
-        Map<String, TestUtils.ContentMatchType> content = new HashMap<String, TestUtils.ContentMatchType>();
-        content.put( "//pluginDependency[version/text()=\"1\"]", TestUtils.ContentMatchType.XPATH );
-
-        requiredContent.put( "META-INF/it/plugin.xml", content );
+        Set<String> xpaths = Collections.singleton( "//pluginDependency[version/text()=\"1\"]" );
+        ContentAssertions assertions = new XPathContentAssertions( "META-INF/it/plugin.xml", xpaths );
 
         Set<String> banned = Collections.emptySet();
 
         File archive = new File( verifier.getBasedir(), "target/001-pluginDependencyVersions-" + version + ".jar" );
 
-        TestUtils.assertZipContents( requiredContent, banned, archive );
+        TestUtils.assertZipContents( Collections.singletonList( assertions ), banned, archive );
     }
 
 }
