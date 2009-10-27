@@ -126,6 +126,14 @@ public class PluginDescriptorMojo
      */
     private ApplicationInformation mapping;
 
+    /**
+     * Here we reuse the buildNumber property of buildnumber-maven-plugin
+     * 
+     * @parameter expression="${maven.buildNumber.buildNumberPropertyName}" 
+     *            default-value="buildNumber"
+     */
+    private String buildNumberPropertyName;
+    
     @SuppressWarnings( "unchecked" )
     public void execute()
         throws MojoExecutionException, MojoFailureException
@@ -159,6 +167,19 @@ public class PluginDescriptorMojo
                 request.addLicense( mavenLicenseModel.getName(), mavenLicenseModel.getUrl() );
             }
         }
+        
+        // scm information
+        if ( mavenProject.getProperties().containsKey( buildNumberPropertyName ) )
+        {
+            request.setScmVersion( (String) mavenProject.getProperties().get( buildNumberPropertyName ) );
+        }
+        else
+        {
+            this.getLog().warn(
+                "No Maven property '" + buildNumberPropertyName
+                    + "' found, make sure buildnumber-maven-plugin is configured." );
+        }
+
 
         // dependencies
         List<Artifact> artifacts = mavenProject.getTestArtifacts();
