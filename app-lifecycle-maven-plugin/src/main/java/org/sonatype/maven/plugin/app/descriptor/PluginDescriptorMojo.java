@@ -31,7 +31,16 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.scm.ScmException;
+import org.apache.maven.scm.ScmFileSet;
+import org.apache.maven.scm.manager.ScmManager;
+import org.apache.maven.scm.provider.ScmProviderRepository;
+import org.apache.maven.scm.provider.svn.AbstractSvnScmProvider;
+import org.apache.maven.scm.provider.svn.command.info.SvnInfoItem;
+import org.apache.maven.scm.provider.svn.command.info.SvnInfoScmResult;
+import org.apache.maven.scm.repository.ScmRepository;
 import org.codehaus.plexus.interpolation.InterpolationException;
+import org.codehaus.plexus.util.StringUtils;
 import org.sonatype.maven.plugin.app.ApplicationInformation;
 import org.sonatype.maven.plugin.app.ClasspathUtils;
 import org.sonatype.plugin.ExtensionPoint;
@@ -62,8 +71,8 @@ public class PluginDescriptorMojo
 
     /**
      * The output location for the generated plugin descriptor. <br/>
-     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included via build
-     * extension.
+     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included
+     * via build extension.
      * 
      * @parameter
      */
@@ -79,8 +88,8 @@ public class PluginDescriptorMojo
     /**
      * The ID of the target application. For example if this plugin was for the Nexus Repository Manager, the ID would
      * be, 'nexus'. <br/>
-     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included via build
-     * extension.
+     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included
+     * via build extension.
      * 
      * @parameter
      */
@@ -88,8 +97,8 @@ public class PluginDescriptorMojo
 
     /**
      * The edition of the target application. Some applications come in multiple flavors, OSS, PRO, Free, light, etc. <br/>
-     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included via build
-     * extension.
+     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included
+     * via build extension.
      * 
      * @parameter expression="OSS"
      */
@@ -97,8 +106,8 @@ public class PluginDescriptorMojo
 
     /**
      * The minimum product version of the target application. <br/>
-     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included via build
-     * extension.
+     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included
+     * via build extension.
      * 
      * @parameter
      */
@@ -106,8 +115,8 @@ public class PluginDescriptorMojo
 
     /**
      * The maximum product version of the target application. <br/>
-     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included via build
-     * extension, if it specified at all.
+     * <b>NOTE:</b> Default value for this field is supplied by the {@link ApplicationInformation} component included
+     * via build extension, if it specified at all.
      * 
      * @parameter
      */
@@ -127,16 +136,36 @@ public class PluginDescriptorMojo
     private ApplicationInformation mapping;
 
     /**
-     * Here we reuse the buildNumber property of buildnumber-maven-plugin
-     * 
-     * @parameter expression="${maven.buildNumber.buildNumberPropertyName}" 
-     *            default-value="buildNumber"
+     * @parameter expression="${project.scm.developerConnection}"
+     * @readonly
      */
-    private String buildNumberPropertyName;
+    private String urlScm;
+
+    /**
+     * The username that is used when connecting to the SCM system.
+     * 
+     * @parameter expression="${username}"
+     * @since 1.0-beta-1
+     */
+    private String username;
+
+    /**
+     * The password that is used when connecting to the SCM system.
+     * 
+     * @parameter expression="${password}"
+     * @since 1.0-beta-1
+     */
+    private String password;
     
+    /**
+     * @component
+     */
+    private ScmManager scmManager;
+
     @SuppressWarnings( "unchecked" )
     public void execute()
-        throws MojoExecutionException, MojoFailureException
+        throws MojoExecutionException,
+            MojoFailureException
     {
         if ( !this.mavenProject.getPackaging().equals( mapping.getPluginPackaging() ) )
         {
@@ -167,19 +196,28 @@ public class PluginDescriptorMojo
                 request.addLicense( mavenLicenseModel.getName(), mavenLicenseModel.getUrl() );
             }
         }
-        
-        // scm information
-        if ( mavenProject.getProperties().containsKey( buildNumberPropertyName ) )
-        {
-            request.setScmVersion( (String) mavenProject.getProperties().get( buildNumberPropertyName ) );
-        }
-        else
-        {
-            this.getLog().warn(
-                "No Maven property '" + buildNumberPropertyName
-                    + "' found, make sure buildnumber-maven-plugin is configured." );
-        }
 
+        // scm information
+        try
+        {
+            ScmRepository repository = getScmRepository();
+
+            SvnInfoScmResult scmResult = scmInfo( repository, new ScmFileSet( mavenProject.getBasedir() ) );
+
+            if ( !scmResult.isSuccess() )
+            {
+                throw new ScmException( scmResult.getCommandOutput() );
+            }
+
+            SvnInfoItem info = (SvnInfoItem) scmResult.getInfoItems().get( 0 );
+
+            request.setScmVersion( info.getLastChangedRevision() );
+            request.setScmTimestamp( info.getLastChangedDate() );
+        }
+        catch ( ScmException e )
+        {
+            this.getLog().warn( "Failed to get scm information: " + e.getMessage() );
+        }
 
         // dependencies
         List<Artifact> artifacts = mavenProject.getTestArtifacts();
@@ -190,9 +228,12 @@ public class PluginDescriptorMojo
 
             artifactLoop: for ( Artifact artifact : artifacts )
             {
-                GAVCoordinate artifactCoordinate =
-                    new GAVCoordinate( artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(), artifact
-                        .getClassifier(), artifact.getType() );
+                GAVCoordinate artifactCoordinate = new GAVCoordinate(
+                    artifact.getGroupId(),
+                    artifact.getArtifactId(),
+                    artifact.getVersion(),
+                    artifact.getClassifier(),
+                    artifact.getType() );
 
                 if ( artifact.getType().equals( mapping.getPluginPackaging() ) )
                 {
@@ -203,8 +244,8 @@ public class PluginDescriptorMojo
 
                     if ( !Artifact.SCOPE_PROVIDED.equals( artifact.getScope() ) )
                     {
-                        throw new MojoFailureException( "Plugin dependency \""
-                            + artifact.getDependencyConflictId() + "\" must have the \"provided\" scope!" );
+                        throw new MojoFailureException( "Plugin dependency \"" + artifact.getDependencyConflictId()
+                            + "\" must have the \"provided\" scope!" );
                     }
 
                     excludedArtifactIds.add( artifact.getId() );
@@ -228,11 +269,10 @@ public class PluginDescriptorMojo
                             {
                                 getLog()
                                     .debug(
-                                            "Dependency artifact: "
-                                                + artifact.getId()
-                                                + " is part of the transitive dependency set for a dependency with 'provided' or 'test' scope: "
-                                                + trailId
-                                                + "\nThis artifact will be excluded from the plugin classpath." );
+                                        "Dependency artifact: "
+                                            + artifact.getId()
+                                            + " is part of the transitive dependency set for a dependency with 'provided' or 'test' scope: "
+                                            + trailId + "\nThis artifact will be excluded from the plugin classpath." );
                                 continue artifactLoop;
                             }
                         }
@@ -308,9 +348,45 @@ public class PluginDescriptorMojo
 
         this.applicationId = applicationId == null ? mapping.getApplicationId() : applicationId;
         this.applicationEdition = applicationEdition == null ? mapping.getApplicationEdition() : applicationEdition;
-        this.applicationMinVersion =
-            applicationMinVersion == null ? mapping.getApplicationMinVersion() : applicationMinVersion;
-        this.applicationMaxVersion =
-            applicationMaxVersion == null ? mapping.getApplicationMaxVersion() : applicationMaxVersion;
+        this.applicationMinVersion = applicationMinVersion == null
+            ? mapping.getApplicationMinVersion()
+            : applicationMinVersion;
+        this.applicationMaxVersion = applicationMaxVersion == null
+            ? mapping.getApplicationMaxVersion()
+            : applicationMaxVersion;
+    }
+
+    private ScmRepository getScmRepository()
+        throws ScmException
+    {
+        if ( StringUtils.isEmpty( urlScm ) )
+        {
+            throw new ScmException( "No SCM URL found." );
+        }
+
+        ScmRepository repository;
+
+        repository = scmManager.makeScmRepository( urlScm );
+
+        ScmProviderRepository scmRepo = repository.getProviderRepository();
+
+        if ( !StringUtils.isEmpty( username ) )
+        {
+            scmRepo.setUser( username );
+        }
+
+        if ( !StringUtils.isEmpty( password ) )
+        {
+            scmRepo.setPassword( password );
+        }
+
+        return repository;
+    }
+    
+    public SvnInfoScmResult scmInfo( ScmRepository repository, ScmFileSet fileSet )
+        throws ScmException
+    {
+        AbstractSvnScmProvider abstractSvnScmProvider = (AbstractSvnScmProvider) scmManager.getProviderByType( "svn" );
+        return abstractSvnScmProvider.info( repository.getProviderRepository(), fileSet, null );
     }
 }
