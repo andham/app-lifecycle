@@ -18,6 +18,11 @@
  */
 package org.sonatype.maven.plugin.app.bundle;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Properties;
+
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -25,16 +30,13 @@ import org.apache.maven.plugin.assembly.InvalidAssemblerConfigurationException;
 import org.apache.maven.plugin.assembly.archive.ArchiveCreationException;
 import org.apache.maven.plugin.assembly.archive.AssemblyArchiver;
 import org.apache.maven.plugin.assembly.format.AssemblyFormattingException;
+import org.apache.maven.plugin.assembly.io.AssemblyReadException;
+import org.apache.maven.plugin.assembly.io.AssemblyReader;
 import org.apache.maven.plugin.assembly.model.Assembly;
 import org.apache.maven.plugin.assembly.model.FileItem;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.sonatype.maven.plugin.app.ClasspathUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.Properties;
 
 /**
  * Create a plugin bundle artifact attach it to the plugin's project.
@@ -71,12 +73,25 @@ public class CreateBundleMojo
     private BundleConfiguration bundle;
 
     /**
+     * Alternative assembly descriptor. If not specified, default assembly descriptor will be used instead.
+     * 
+     * @parameter
+     * @readonly
+     */
+    private File assemblyDescriptor;
+
+    /**
      * Assembly manager component that is responsible for creating the plugin bundle assembly and attaching it to the
      * current project.
      * 
      * @component
      */
     private AssemblyArchiver archiver;
+
+    /**
+     * @component
+     */
+    private AssemblyReader assemblyReader;
 
     /**
      * Component used by the {@link AssemblyArchiver} to attach the bundle artifact to the current project.
@@ -89,7 +104,38 @@ public class CreateBundleMojo
     public void execute()
         throws MojoExecutionException
     {
-        Assembly assembly = new Assembly();
+
+        if ( bundle == null )
+        {
+            bundle = new BundleConfiguration( project, session );
+        }
+        else
+        {
+            bundle.initDefaults( project, session );
+        }
+
+        Assembly assembly;
+
+        if ( assemblyDescriptor != null )
+        {
+            try
+            {
+                assembly = assemblyReader.getAssemblyFromDescriptorFile( assemblyDescriptor, bundle );
+            }
+            catch ( AssemblyReadException e )
+            {
+                throw new MojoExecutionException( "Could not read assembly descriptor " + assemblyDescriptor.getAbsolutePath(), e );
+            }
+            catch ( InvalidAssemblerConfigurationException e )
+            {
+                throw new MojoExecutionException( "Invalid assembly descriptor " + assemblyDescriptor.getAbsolutePath(), e );
+            }
+        }
+        else
+        {
+            assembly = new Assembly();
+        }
+
         assembly.addFormat( "zip" );
         assembly.setId( "bundle" );
         assembly.setIncludeBaseDirectory( false );
@@ -122,15 +168,6 @@ public class CreateBundleMojo
         fi.setOutputDirectory( project.getArtifactId() + "-" + project.getVersion() );
 
         assembly.addFile( fi );
-
-        if ( bundle == null )
-        {
-            bundle = new BundleConfiguration( project, session );
-        }
-        else
-        {
-            bundle.initDefaults( project, session );
-        }
 
         try
         {
