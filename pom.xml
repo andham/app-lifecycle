@@ -24,7 +24,7 @@
   </parent>
   
   <artifactId>app-lifecycle</artifactId>
-  <version>1.2-SNAPSHOT</version>
+  <version>1.2</version>
   
   <packaging>pom</packaging>
   <name>App Lifecycle Tools</name>
@@ -47,9 +47,9 @@
   </licenses>
   
   <scm>
-    <connection>scm:svn:http://svn.sonatype.org/plugins/trunk/app-lifecycle</connection>
-    <url>http://svn.sonatype.org/plugins/trunk/app-lifecycle</url>
-    <developerConnection>scm:svn:https://svn.sonatype.org/plugins/trunk/app-lifecycle</developerConnection>
+    <connection>scm:svn:http://svn.sonatype.org/plugins/tags/app-lifecycle-1.2</connection>
+    <url>http://svn.sonatype.org/plugins/tags/app-lifecycle-1.2</url>
+    <developerConnection>scm:svn:https://svn.sonatype.org/plugins/tags/app-lifecycle-1.2</developerConnection>
   </scm>
   
 	<profiles>
