@@ -5,13 +5,13 @@
   <parent>
     <groupId>org.sonatype.plugins.it.applifecycle</groupId>
     <artifactId>it-bootstrap</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>${project.version}</version>
   </parent>
 
   <artifactId>it-snapshot-plugin</artifactId>
   <version>1-SNAPSHOT</version>
   <name>Snapshot IT Plugin</name>
-  
+
   <build>
     <resources>
       <resource>
@@ -19,7 +19,7 @@
         <filtering>true</filtering>
       </resource>
     </resources>
-    
+
     <plugins>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>

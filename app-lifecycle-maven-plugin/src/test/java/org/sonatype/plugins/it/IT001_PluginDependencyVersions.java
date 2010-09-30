@@ -2,6 +2,14 @@ package org.sonatype.plugins.it;
 
 import static org.sonatype.plugins.it.util.Bootstrap.bootstrap;
 import static org.sonatype.plugins.it.util.TestUtils.getTestDir;
+import static org.sonatype.plugins.it.util.TestUtils.getVerifier;
+import static org.sonatype.plugins.it.util.TestUtils.getVerifierEnvVars;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.Set;
 
 import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
@@ -11,12 +19,6 @@ import org.sonatype.plugins.it.util.ContentAssertions;
 import org.sonatype.plugins.it.util.TestUtils;
 import org.sonatype.plugins.it.util.XPathContentAssertions;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.Set;
-
 public class IT001_PluginDependencyVersions
 {
 
@@ -25,14 +27,13 @@ public class IT001_PluginDependencyVersions
         throws IOException, URISyntaxException, VerificationException, JDOMException
     {
         bootstrap();
-        
+
         File dir = getTestDir( "001-pluginDependencyVersions" );
 
         String version = TestUtils.getPomVersion( new File( dir, "pom.xml" ) );
 
-        Verifier verifier = new Verifier( dir.getAbsolutePath() );
-
-        verifier.executeGoal( "package" );
+        Verifier verifier = TestUtils.getVerifier(dir.getAbsolutePath());
+        verifier.executeGoal( "package", TestUtils.getVerifierEnvVars() );
 
         verifier.verifyErrorFreeLog();
         verifier.resetStreams();
@@ -46,5 +47,10 @@ public class IT001_PluginDependencyVersions
 
         TestUtils.assertZipContents( Collections.singletonList( assertions ), banned, archive );
     }
+
+
+
+
+
 
 }

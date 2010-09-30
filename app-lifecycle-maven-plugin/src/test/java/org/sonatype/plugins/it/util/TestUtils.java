@@ -3,12 +3,6 @@ package org.sonatype.plugins.it.util;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
-import org.codehaus.plexus.util.IOUtil;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -17,16 +11,59 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import org.apache.maven.it.VerificationException;
+import org.apache.maven.it.Verifier;
+import org.codehaus.plexus.util.IOUtil;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jdom.input.SAXBuilder;
+
 public class TestUtils
 {
-    
+    public static final String JVM_DEBUGGER_OPTIONS =
+        "-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000";
+
+    /** to use debugger on forked tests, simply change this to true and rerun */
+    public static final boolean ENABLE_DEBUGGER_ON_FORKED_TEST = false;
+
+    public static List<String> getStandardVerifierCliOptions()
+    {
+        List<String> cliOptions = new ArrayList<String>();
+        cliOptions.add( "-V" );
+        return cliOptions;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    public static Verifier getVerifier( final String dir )
+        throws VerificationException
+    {
+        Verifier verifier = new Verifier( dir );
+        verifier.getCliOptions().addAll( getStandardVerifierCliOptions() );
+        verifier.setMavenDebug( false );
+        return verifier;
+    }
+
+    public static Map<String, String> getVerifierEnvVars()
+    {
+        Map<String, String> envVars = new HashMap<String, String>();
+        if ( TestUtils.ENABLE_DEBUGGER_ON_FORKED_TEST )
+        {
+            // this actually doesn't work very well
+            envVars.put( "MAVEN_OPTS", JVM_DEBUGGER_OPTIONS );
+        }
+        return envVars;
+    }
+
     public static String getPomVersion( final File pomFile )
         throws JDOMException, IOException
     {
@@ -53,12 +90,8 @@ public class TestUtils
             childPath = "/" + childPath;
         }
 
-        return ( artifactId + "-" + version + "/" + artifactId + "-" + childName + childPath ).replace(
-                                                                                                        '\\',
-                                                                                                        File.separatorChar )
-                                                                                              .replace(
-                                                                                                        '/',
-                                                                                                        File.separatorChar );
+        return ( artifactId + "-" + version + "/" + artifactId + "-" + childName + childPath ).replace( '\\',
+            File.separatorChar ).replace( '/', File.separatorChar );
     }
 
     public static String archivePathFromProject( final String artifactId, final String version, String path )
@@ -69,12 +102,11 @@ public class TestUtils
         }
 
         return ( artifactId + "-" + version + path ).replace( '\\', File.separatorChar ).replace( '/',
-                                                                                                  File.separatorChar );
+            File.separatorChar );
     }
 
     public static void assertZipContents( final Collection<ContentAssertions> requiredContent,
-                                          final Set<String> banned,
-                                          final File assembly )
+                                          final Set<String> banned, final File assembly )
         throws ZipException, IOException, JDOMException
     {
         assertTrue( "Assembly archive missing: " + assembly, assembly.isFile() );

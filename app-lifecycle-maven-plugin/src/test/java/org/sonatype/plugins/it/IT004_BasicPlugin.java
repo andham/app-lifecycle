@@ -27,14 +27,13 @@ public class IT004_BasicPlugin
         throws IOException, URISyntaxException, VerificationException, JDOMException
     {
         bootstrap();
-        
+
         File dir = getTestDir( "004-basicPlugin" );
 
         String version = TestUtils.getPomVersion( new File( dir, "pom.xml" ) );
 
-        Verifier verifier = new Verifier( dir.getAbsolutePath() );
-
-        verifier.executeGoal( "package" );
+        Verifier verifier = TestUtils.getVerifier(dir.getAbsolutePath());
+        verifier.executeGoal( "package", TestUtils.getVerifierEnvVars() );
 
         verifier.verifyErrorFreeLog();
         verifier.resetStreams();

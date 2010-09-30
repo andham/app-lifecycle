@@ -30,9 +30,8 @@ public class IT003_NonPluginComponentDeps
 
         String version = TestUtils.getPomVersion( new File( dir, "pom.xml" ) );
 
-        Verifier verifier = new Verifier( dir.getAbsolutePath() );
-
-        verifier.executeGoal( "package" );
+        Verifier verifier = TestUtils.getVerifier(dir.getAbsolutePath());
+        verifier.executeGoal( "package", TestUtils.getVerifierEnvVars() );
 
         verifier.verifyErrorFreeLog();
         verifier.resetStreams();
