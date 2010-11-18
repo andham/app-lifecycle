@@ -80,9 +80,9 @@ public final class ClasspathUtils
 
             StringBuilder fname = new StringBuilder();
 
-            // changed to write out G:A:V
+            // changed to write out G:A:V[:C]:T
             fname.append( artifact.getGroupId() ).append( ":" ).append( artifact.getArtifactId() ).append( ":" ).append(
-                artifact.getVersion() );
+                artifact.getBaseVersion() );
 
             if ( artifact.getClassifier() != null )
             {
@@ -101,7 +101,7 @@ public final class ClasspathUtils
             cpFile.getParentFile().mkdirs();
             stream = new FileOutputStream( cpFile );
 
-            p.store( stream, "Written on: " + new Date() + " (key format is G:A:V[:C]:E)" );
+            p.store( stream, "Written on: " + new Date() + " (key format is G:A:V[:C]:T)" );
         }
         finally
         {
