@@ -211,6 +211,11 @@ public class CreateBundleMojo
 
     protected boolean isExcluded( final String key )
     {
+        if ( classpathDependencyExcludes == null )
+        {
+            return false;
+        }
+
         for ( String exclude : classpathDependencyExcludes )
         {
             if ( key.startsWith( exclude ) )
