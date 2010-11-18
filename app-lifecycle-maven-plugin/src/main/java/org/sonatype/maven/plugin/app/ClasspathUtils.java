@@ -35,7 +35,6 @@ import java.util.Set;
  * plugin.
  * 
  * @author jdcasey
- * 
  */
 public final class ClasspathUtils
 {
@@ -80,14 +79,17 @@ public final class ClasspathUtils
             File artifactFile = artifact.getFile();
 
             StringBuilder fname = new StringBuilder();
-            fname.append( artifact.getArtifactId() ).append( '-' ).append( artifact.getVersion() );
+
+            // changed to write out G:A:V
+            fname.append( artifact.getGroupId() ).append( ":" ).append( artifact.getArtifactId() ).append( ":" ).append(
+                artifact.getVersion() );
 
             if ( artifact.getClassifier() != null )
             {
-                fname.append( '-' ).append( artifact.getClassifier() );
+                fname.append( ':' ).append( artifact.getClassifier() );
             }
 
-            fname.append( '.' ).append( artifact.getArtifactHandler().getExtension() );
+            fname.append( ':' ).append( artifact.getType() );
 
             p.setProperty( fname.toString(), artifactFile.getAbsolutePath() );
         }
@@ -99,7 +101,7 @@ public final class ClasspathUtils
             cpFile.getParentFile().mkdirs();
             stream = new FileOutputStream( cpFile );
 
-            p.store( stream, "Written on: " + new Date() );
+            p.store( stream, "Written on: " + new Date() + " (key format is G:A:V[:C]:E)" );
         }
         finally
         {

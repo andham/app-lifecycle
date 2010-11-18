@@ -156,7 +156,7 @@ public class PluginDescriptorMojo
      * @since 1.0-beta-1
      */
     private String password;
-    
+
     /**
      * @component
      */
@@ -164,8 +164,7 @@ public class PluginDescriptorMojo
 
     @SuppressWarnings( "unchecked" )
     public void execute()
-        throws MojoExecutionException,
-            MojoFailureException
+        throws MojoExecutionException, MojoFailureException
     {
         if ( !this.mavenProject.getPackaging().equals( mapping.getPluginPackaging() ) )
         {
@@ -228,12 +227,9 @@ public class PluginDescriptorMojo
 
             artifactLoop: for ( Artifact artifact : artifacts )
             {
-                GAVCoordinate artifactCoordinate = new GAVCoordinate(
-                    artifact.getGroupId(),
-                    artifact.getArtifactId(),
-                    artifact.getVersion(),
-                    artifact.getClassifier(),
-                    artifact.getType() );
+                GAVCoordinate artifactCoordinate =
+                    new GAVCoordinate( artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(),
+                        artifact.getClassifier(), artifact.getType() );
 
                 if ( artifact.getType().equals( mapping.getPluginPackaging() ) )
                 {
@@ -257,8 +253,7 @@ public class PluginDescriptorMojo
                 {
                     excludedArtifactIds.add( artifact.getId() );
                 }
-                else if ( ( Artifact.SCOPE_COMPILE.equals( artifact.getScope() ) || Artifact.SCOPE_RUNTIME
-                    .equals( artifact.getScope() ) )
+                else if ( ( Artifact.SCOPE_COMPILE.equals( artifact.getScope() ) || Artifact.SCOPE_RUNTIME.equals( artifact.getScope() ) )
                     && ( !mapping.matchesCoreGroupIds( artifact.getGroupId() ) ) )
                 {
                     if ( artifact.getDependencyTrail() != null )
@@ -267,12 +262,11 @@ public class PluginDescriptorMojo
                         {
                             if ( excludedArtifactIds.contains( trailId ) )
                             {
-                                getLog()
-                                    .debug(
-                                        "Dependency artifact: "
-                                            + artifact.getId()
-                                            + " is part of the transitive dependency set for a dependency with 'provided' or 'test' scope: "
-                                            + trailId + "\nThis artifact will be excluded from the plugin classpath." );
+                                getLog().debug(
+                                    "Dependency artifact: "
+                                        + artifact.getId()
+                                        + " is part of the transitive dependency set for a dependency with 'provided' or 'test' scope: "
+                                        + trailId + "\nThis artifact will be excluded from the plugin classpath." );
                                 continue artifactLoop;
                             }
                         }
@@ -348,12 +342,10 @@ public class PluginDescriptorMojo
 
         this.applicationId = applicationId == null ? mapping.getApplicationId() : applicationId;
         this.applicationEdition = applicationEdition == null ? mapping.getApplicationEdition() : applicationEdition;
-        this.applicationMinVersion = applicationMinVersion == null
-            ? mapping.getApplicationMinVersion()
-            : applicationMinVersion;
-        this.applicationMaxVersion = applicationMaxVersion == null
-            ? mapping.getApplicationMaxVersion()
-            : applicationMaxVersion;
+        this.applicationMinVersion =
+            applicationMinVersion == null ? mapping.getApplicationMinVersion() : applicationMinVersion;
+        this.applicationMaxVersion =
+            applicationMaxVersion == null ? mapping.getApplicationMaxVersion() : applicationMaxVersion;
     }
 
     private ScmRepository getScmRepository()
@@ -382,7 +374,7 @@ public class PluginDescriptorMojo
 
         return repository;
     }
-    
+
     public SvnInfoScmResult scmInfo( ScmRepository repository, ScmFileSet fileSet )
         throws ScmException
     {

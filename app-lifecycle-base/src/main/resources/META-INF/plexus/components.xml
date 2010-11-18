@@ -38,11 +38,9 @@
             <phases>
               <!-- Sonatype app-specific steps: 
                |
-               |     1. inject the app-plugin ArtifactHandler into the project's artifact instance
-               |     2. verify that all app dependencies in this project have their scope set to 'provided'
+               |     1. verify that all app dependencies in this project have their scope set to 'provided'
                -->
               <initialize>
-                org.sonatype.plugins:app-lifecycle-maven-plugin:${project.version}:inject-artifact-handler,
                 org.sonatype.plugins:app-lifecycle-maven-plugin:${project.version}:check-dependencies
               </initialize>
               

@@ -52,6 +52,10 @@
     <url>http://svn.sonatype.org/plugins/trunk/app-lifecycle</url>
     <developerConnection>scm:svn:https://svn.sonatype.org/plugins/trunk/app-lifecycle</developerConnection>
   </scm>
+  
+  <properties>
+    <maven.version>3.0</maven.version>
+  </properties>
 
   <profiles>
     <profile>

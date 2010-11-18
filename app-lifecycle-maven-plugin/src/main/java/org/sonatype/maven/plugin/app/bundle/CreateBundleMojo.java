@@ -21,6 +21,7 @@ package org.sonatype.maven.plugin.app.bundle;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.maven.execution.MavenSession;
@@ -100,7 +101,15 @@ public class CreateBundleMojo
      */
     private MavenProjectHelper projectHelper;
 
-    @SuppressWarnings( "unchecked" )
+    /**
+     * The list of classpath dependencies to be excluded from bundling for some reason (for example because you are
+     * shading it into plugin artifact).
+     * 
+     * @parameter
+     * @since 1.3
+     */
+    private List<String> classpathDependencyExcludes;
+
     public void execute()
         throws MojoExecutionException
     {
@@ -124,11 +133,13 @@ public class CreateBundleMojo
             }
             catch ( AssemblyReadException e )
             {
-                throw new MojoExecutionException( "Could not read assembly descriptor " + assemblyDescriptor.getAbsolutePath(), e );
+                throw new MojoExecutionException( "Could not read assembly descriptor "
+                    + assemblyDescriptor.getAbsolutePath(), e );
             }
             catch ( InvalidAssemblerConfigurationException e )
             {
-                throw new MojoExecutionException( "Invalid assembly descriptor " + assemblyDescriptor.getAbsolutePath(), e );
+                throw new MojoExecutionException(
+                    "Invalid assembly descriptor " + assemblyDescriptor.getAbsolutePath(), e );
             }
         }
         else
@@ -148,14 +159,23 @@ public class CreateBundleMojo
             for ( Iterator it = cpArtifacts.keySet().iterator(); it.hasNext(); )
             {
                 String destName = (String) it.next();
-                String sourcePath = cpArtifacts.getProperty( destName );
 
-                FileItem fi = new FileItem();
-                fi.setSource( sourcePath );
-                fi.setOutputDirectory( outputDirectory );
-                fi.setDestName( destName );
+                if ( !isExcluded( destName ) )
+                {
+                    String sourcePath = cpArtifacts.getProperty( destName );
 
-                assembly.addFile( fi );
+                    FileItem fi = new FileItem();
+                    fi.setSource( sourcePath );
+                    fi.setOutputDirectory( outputDirectory );
+                    fi.setDestName( new File( sourcePath ).getName() );
+
+                    assembly.addFile( fi );
+                }
+                else
+                {
+                    getLog().info(
+                        "Classpath dependency [" + destName + "] is excluded from plugin bundle by configuration." );
+                }
             }
         }
         catch ( IOException e )
@@ -187,5 +207,18 @@ public class CreateBundleMojo
         {
             throw new MojoExecutionException( "Failed to create plugin bundle: " + e.getMessage(), e );
         }
+    }
+
+    protected boolean isExcluded( final String key )
+    {
+        for ( String exclude : classpathDependencyExcludes )
+        {
+            if ( key.startsWith( exclude ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

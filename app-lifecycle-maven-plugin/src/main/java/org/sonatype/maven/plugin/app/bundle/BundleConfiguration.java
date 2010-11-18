@@ -18,6 +18,10 @@
  */
 package org.sonatype.maven.plugin.app.bundle;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.execution.MavenSession;
@@ -25,10 +29,7 @@ import org.apache.maven.plugin.assembly.AssemblerConfigurationSource;
 import org.apache.maven.plugin.assembly.model.Assembly;
 import org.apache.maven.plugin.assembly.utils.AssemblyFormatUtils;
 import org.apache.maven.project.MavenProject;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.maven.shared.filtering.MavenFileFilter;
 
 /**
  * Supplemental configuration for plugin bundle assemblies, to allow users to customize the finalName, archive
@@ -120,7 +121,6 @@ public class BundleConfiguration
         return null;
     }
 
-    @SuppressWarnings( "unchecked" )
     public List getFilters()
     {
         return filters;
@@ -181,10 +181,9 @@ public class BundleConfiguration
         return project;
     }
 
-    @SuppressWarnings( "unchecked" )
     public List getReactorProjects()
     {
-        return session.getSortedProjects();
+        return session.getProjects();
     }
 
     @SuppressWarnings( "unchecked" )
@@ -246,6 +245,11 @@ public class BundleConfiguration
     public String getAssemblyFileName( final Assembly assembly )
     {
         return AssemblyFormatUtils.getDistributionName( assembly, this );
+    }
+
+    public MavenFileFilter getMavenFileFilter()
+    {
+        return null;
     }
 
 }

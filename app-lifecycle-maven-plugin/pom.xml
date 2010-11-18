@@ -1,124 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
- * Sonatype Application Build Lifecycle
- * Copyright (C) 2009 Sonatype, Inc.                                                                                                                          
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/.
- -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<!-- * Sonatype Application Build Lifecycle * Copyright (C) 2009 Sonatype, Inc. * * This program is free software: you can 
+  redistribute it and/or modify * it under the terms of the GNU General Public License as published by * the Free Software 
+  Foundation, either version 3 of the License, or * (at your option) any later version. * * This program is distributed in 
+  the hope that it will be useful, * but WITHOUT ANY WARRANTY; without even the implied warranty of * MERCHANTABILITY or FITNESS 
+  FOR A PARTICULAR PURPOSE. See the * GNU General Public License for more details. * * You should have received a copy of the 
+  GNU General Public License * along with this program. If not, see http://www.gnu.org/licenses/. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.sonatype.plugins</groupId>
     <artifactId>app-lifecycle</artifactId>
     <version>1.3-SNAPSHOT</version>
   </parent>
-  
+
   <artifactId>app-lifecycle-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
   <name>App Lifecycle Maven Plugin</name>
-  
+
   <properties>
-  	<maven.scm.version>1.2</maven.scm.version>
+    <sonatype-plugin-api.version>1.0.3</sonatype-plugin-api.version>
+    <maven.scm.version>1.4</maven.scm.version>
   </properties>
-  
+
+  <prerequisites>
+    <maven>3.0</maven>
+  </prerequisites>
+
   <dependencies>
+    <dependency>
+      <groupId>org.sonatype.plugin</groupId>
+      <artifactId>plugin-api</artifactId>
+      <version>${sonatype-plugin-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.plugin</groupId>
+      <artifactId>plugin-host-api</artifactId>
+      <version>${sonatype-plugin-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.plugin</groupId>
+      <artifactId>plugin-model-api</artifactId>
+      <version>${sonatype-plugin-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.plugin</groupId>
+      <artifactId>plugin-gleaner</artifactId>
+      <version>${sonatype-plugin-api.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>app-lifecycle-base</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
+
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
-      <version>2.1.0</version>
+      <version>${maven.version}</version>
     </dependency>
     <dependency>
-	   	<groupId>org.apache.maven.plugins</groupId>
-	   	<artifactId>maven-assembly-plugin</artifactId>
-	   	<version>2.2-beta-4</version>
-	   	<type>maven-plugin</type>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-assembly-plugin</artifactId>
+      <version>2.2-beta-5</version>
+      <type>maven-plugin</type>
     </dependency>
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-utils</artifactId>
-      <version>1.5.15</version>
+      <version>2.0.5</version>
     </dependency>
-    <dependency>
-      <groupId>org.sonatype.plugin</groupId>
-      <artifactId>plugin-api</artifactId>
-      <version>1.0.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sonatype.plugin</groupId>
-      <artifactId>plugin-host-api</artifactId>
-      <version>1.0.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sonatype.plugin</groupId>
-      <artifactId>plugin-model-api</artifactId>
-      <version>1.0.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sonatype.plugin</groupId>
-      <artifactId>plugin-gleaner</artifactId>
-      <version>1.0.2</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.5</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.shared</groupId>
-      <artifactId>maven-verifier</artifactId>
-      <version>1.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.jdom</groupId>
-    	<artifactId>jdom</artifactId>
-    	<version>1.1</version>
-    	<scope>compile</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.jdom</groupId>
-    	<artifactId>jaxen-core</artifactId>
-    	<version>1.0-FCS</version>
-    	<type>jar</type>
-    	<scope>compile</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.jdom</groupId>
-    	<artifactId>jaxen-jdom</artifactId>
-    	<version>1.0-FCS</version>
-    	<type>jar</type>
-    	<scope>compile</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.jdom</groupId>
-    	<artifactId>saxpath</artifactId>
-    	<version>1.0-FCS</version>
-    	<type>jar</type>
-    	<scope>compile</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.codehaus.groovy</groupId>
-    	<artifactId>groovy</artifactId>
-    	<version>1.6.0</version>
-    </dependency>
+
+    <!-- SCM Manager and most used SCM providers: SVN, GIT and HG -->
     <dependency>
       <groupId>org.apache.maven.scm</groupId>
       <artifactId>maven-scm-api</artifactId>
@@ -138,9 +93,70 @@
       <groupId>org.apache.maven.scm</groupId>
       <artifactId>maven-scm-provider-svn-commons</artifactId>
       <version>${maven.scm.version}</version>
-    </dependency>    
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-gitexe</artifactId>
+      <version>${maven.scm.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-git-commons</artifactId>
+      <version>${maven.scm.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-provider-hg</artifactId>
+      <version>${maven.scm.version}</version>
+    </dependency>
+
+    <!-- Test -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-verifier</artifactId>
+      <version>1.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- ITs -->
+    <dependency>
+      <groupId>org.jdom</groupId>
+      <artifactId>jdom</artifactId>
+      <version>1.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jdom</groupId>
+      <artifactId>jaxen-core</artifactId>
+      <version>1.0-FCS</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jdom</groupId>
+      <artifactId>jaxen-jdom</artifactId>
+      <version>1.0-FCS</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jdom</groupId>
+      <artifactId>saxpath</artifactId>
+      <version>1.0-FCS</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy</artifactId>
+      <version>1.7.5</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
-  
+
   <reporting>
     <plugins>
       <plugin>
@@ -150,7 +166,7 @@
       </plugin>
     </plugins>
   </reporting>
-  
+
   <build>
     <pluginManagement>
       <plugins>
@@ -174,7 +190,7 @@
       </plugins>
     </pluginManagement>
   </build>
-  
+
   <profiles>
     <profile>
       <id>run-its</id>
@@ -198,7 +214,7 @@
             </excludes>
           </testResource>
         </testResources>
-        
+
         <pluginManagement>
           <plugins>
             <plugin>
@@ -211,9 +227,9 @@
                     <goal>test</goal>
                   </goals>
                   <configuration>
-      	            <includes>
-      	              <include>**/IT*</include>
-      	            </includes>
+                    <includes>
+                      <include>**/IT*</include>
+                    </includes>
                     <excludes>
                       <exclude>**/bootstrap/**/*</exclude>
                       <exclude>**/00*/**/*</exclude>
@@ -224,14 +240,14 @@
                         <value>${project.build.directory}/it-repo</value>
                       </property>
                     </systemProperties>
-      	          </configuration>
-      	        </execution>
-      	      </executions>
-  	        </plugin>
-  	      </plugins>
-  	    </pluginManagement>
-  	    
-  	    <plugins>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+
+        <plugins>
           <plugin>
             <artifactId>maven-invoker-plugin</artifactId>
             <version>1.4</version>
@@ -248,16 +264,16 @@
               </execution>
             </executions>
           </plugin>
-  	    </plugins>
+        </plugins>
       </build>
     </profile>
   </profiles>
-  
+
   <distributionManagement>
     <site>
       <id>sonatype.org-sites</id>
       <url>${pluginsSiteBaseUrl}/${project.parent.artifactId}/${project.artifactId}</url>
     </site>
   </distributionManagement>
-  
+
 </project>
