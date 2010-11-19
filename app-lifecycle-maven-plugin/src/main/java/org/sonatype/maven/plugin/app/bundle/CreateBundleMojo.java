@@ -21,7 +21,6 @@ package org.sonatype.maven.plugin.app.bundle;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Properties;
 
 import org.apache.maven.execution.MavenSession;
@@ -101,15 +100,6 @@ public class CreateBundleMojo
      */
     private MavenProjectHelper projectHelper;
 
-    /**
-     * The list of classpath dependencies to be excluded from bundling for some reason (for example because you are
-     * shading it into plugin artifact).
-     * 
-     * @parameter
-     * @since 1.3
-     */
-    private List<String> classpathDependencyExcludes;
-
     public void execute()
         throws MojoExecutionException
     {
@@ -160,22 +150,14 @@ public class CreateBundleMojo
             {
                 String destName = (String) it.next();
 
-                if ( !isExcluded( destName ) )
-                {
-                    String sourcePath = cpArtifacts.getProperty( destName );
+                String sourcePath = cpArtifacts.getProperty( destName );
 
-                    FileItem fi = new FileItem();
-                    fi.setSource( sourcePath );
-                    fi.setOutputDirectory( outputDirectory );
-                    fi.setDestName( new File( sourcePath ).getName() );
+                FileItem fi = new FileItem();
+                fi.setSource( sourcePath );
+                fi.setOutputDirectory( outputDirectory );
+                fi.setDestName( new File( sourcePath ).getName() );
 
-                    assembly.addFile( fi );
-                }
-                else
-                {
-                    getLog().info(
-                        "Classpath dependency [" + destName + "] is excluded from plugin bundle by configuration." );
-                }
+                assembly.addFile( fi );
             }
         }
         catch ( IOException e )
@@ -207,23 +189,5 @@ public class CreateBundleMojo
         {
             throw new MojoExecutionException( "Failed to create plugin bundle: " + e.getMessage(), e );
         }
-    }
-
-    protected boolean isExcluded( final String key )
-    {
-        if ( classpathDependencyExcludes == null )
-        {
-            return false;
-        }
-
-        for ( String exclude : classpathDependencyExcludes )
-        {
-            if ( key.startsWith( exclude ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

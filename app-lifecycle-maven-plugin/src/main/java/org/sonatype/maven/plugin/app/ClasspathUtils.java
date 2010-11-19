@@ -45,6 +45,24 @@ public final class ClasspathUtils
     {
     }
 
+    public static String formatArtifactKey( final Artifact artifact )
+    {
+        StringBuilder fname = new StringBuilder();
+
+        // changed to write out G:A:V[:C]:T
+        fname.append( artifact.getGroupId() ).append( ":" ).append( artifact.getArtifactId() ).append( ":" ).append(
+            artifact.getBaseVersion() );
+
+        if ( artifact.getClassifier() != null )
+        {
+            fname.append( ':' ).append( artifact.getClassifier() );
+        }
+
+        fname.append( ':' ).append( artifact.getType() );
+
+        return fname.toString();
+    }
+
     public static Properties read( final MavenProject project )
         throws IOException
     {
@@ -78,20 +96,9 @@ public final class ClasspathUtils
         {
             File artifactFile = artifact.getFile();
 
-            StringBuilder fname = new StringBuilder();
+            String fname = formatArtifactKey( artifact );
 
-            // changed to write out G:A:V[:C]:T
-            fname.append( artifact.getGroupId() ).append( ":" ).append( artifact.getArtifactId() ).append( ":" ).append(
-                artifact.getBaseVersion() );
-
-            if ( artifact.getClassifier() != null )
-            {
-                fname.append( ':' ).append( artifact.getClassifier() );
-            }
-
-            fname.append( ':' ).append( artifact.getType() );
-
-            p.setProperty( fname.toString(), artifactFile.getAbsolutePath() );
+            p.setProperty( fname, artifactFile.getAbsolutePath() );
         }
 
         File cpFile = new File( project.getBuild().getDirectory(), CP_PROPSFILE );

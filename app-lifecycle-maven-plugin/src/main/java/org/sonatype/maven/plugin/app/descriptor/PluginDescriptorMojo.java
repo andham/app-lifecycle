@@ -162,6 +162,15 @@ public class PluginDescriptorMojo
      */
     private ScmManager scmManager;
 
+    /**
+     * The list of classpath dependencies to be excluded from bundling for some reason (for example because you are
+     * shading it into plugin artifact).
+     * 
+     * @parameter
+     * @since 1.3
+     */
+    private List<String> classpathDependencyExcludes;
+
     @SuppressWarnings( "unchecked" )
     public void execute()
         throws MojoExecutionException, MojoFailureException
@@ -197,26 +206,7 @@ public class PluginDescriptorMojo
         }
 
         // scm information
-        try
-        {
-            ScmRepository repository = getScmRepository();
-
-            SvnInfoScmResult scmResult = scmInfo( repository, new ScmFileSet( mavenProject.getBasedir() ) );
-
-            if ( !scmResult.isSuccess() )
-            {
-                throw new ScmException( scmResult.getCommandOutput() );
-            }
-
-            SvnInfoItem info = (SvnInfoItem) scmResult.getInfoItems().get( 0 );
-
-            request.setScmVersion( info.getLastChangedRevision() );
-            request.setScmTimestamp( info.getLastChangedDate() );
-        }
-        catch ( ScmException e )
-        {
-            this.getLog().warn( "Failed to get scm information: " + e.getMessage() );
-        }
+        fillScmInfo( request );
 
         // dependencies
         List<Artifact> artifacts = mavenProject.getTestArtifacts();
@@ -278,8 +268,18 @@ public class PluginDescriptorMojo
                         artifactCoordinate.setHasComponents( true );
                     }
 
-                    request.addClasspathDependency( artifactCoordinate );
-                    classpathArtifacts.add( artifact );
+                    final String artifactKey = ClasspathUtils.formatArtifactKey( artifact );
+                    
+                    if ( !isExcluded( artifactKey ) )
+                    {
+                        request.addClasspathDependency( artifactCoordinate );
+                        classpathArtifacts.add( artifact );
+                    }
+                    else
+                    {
+                        getLog().info(
+                            "Classpath dependency [" + artifactKey + "] is excluded from plugin bundle by user configuration." );
+                    }
                 }
             }
         }
@@ -348,6 +348,51 @@ public class PluginDescriptorMojo
             applicationMaxVersion == null ? mapping.getApplicationMaxVersion() : applicationMaxVersion;
     }
 
+    protected boolean isExcluded( final String key )
+    {
+        if ( classpathDependencyExcludes == null )
+        {
+            return false;
+        }
+
+        for ( String exclude : classpathDependencyExcludes )
+        {
+            if ( key.startsWith( exclude ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // SCM
+
+    protected void fillScmInfo( PluginMetadataGenerationRequest request )
+    {
+        // scm information
+        try
+        {
+            ScmRepository repository = getScmRepository();
+
+            SvnInfoScmResult scmResult = scmInfo( repository, new ScmFileSet( mavenProject.getBasedir() ) );
+
+            if ( !scmResult.isSuccess() )
+            {
+                throw new ScmException( scmResult.getCommandOutput() );
+            }
+
+            SvnInfoItem info = (SvnInfoItem) scmResult.getInfoItems().get( 0 );
+
+            request.setScmVersion( info.getLastChangedRevision() );
+            request.setScmTimestamp( info.getLastChangedDate() );
+        }
+        catch ( ScmException e )
+        {
+            this.getLog().warn( "Failed to get scm information: " + e.getMessage() );
+        }
+    }
+
     private ScmRepository getScmRepository()
         throws ScmException
     {
@@ -356,9 +401,7 @@ public class PluginDescriptorMojo
             throw new ScmException( "No SCM URL found." );
         }
 
-        ScmRepository repository;
-
-        repository = scmManager.makeScmRepository( urlScm );
+        ScmRepository repository = scmManager.makeScmRepository( urlScm );
 
         ScmProviderRepository scmRepo = repository.getProviderRepository();
 
@@ -375,7 +418,7 @@ public class PluginDescriptorMojo
         return repository;
     }
 
-    public SvnInfoScmResult scmInfo( ScmRepository repository, ScmFileSet fileSet )
+    private SvnInfoScmResult scmInfo( ScmRepository repository, ScmFileSet fileSet )
         throws ScmException
     {
         AbstractSvnScmProvider abstractSvnScmProvider = (AbstractSvnScmProvider) scmManager.getProviderByType( "svn" );
