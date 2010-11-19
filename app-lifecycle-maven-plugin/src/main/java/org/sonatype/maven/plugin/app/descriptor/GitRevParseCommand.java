@@ -14,6 +14,11 @@ import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 
+/**
+ * A simple command to present checksum of current repo.
+ * 
+ * @author cstamas
+ */
 public class GitRevParseCommand
     extends AbstractCommand
     implements GitCommand
@@ -36,12 +41,12 @@ public class GitRevParseCommand
         if ( exitCode != 0 )
         {
             return new GitRevParseScmResult( cl.toString(), "The git-rev-parse command failed.", stderr.getOutput(),
-                false, null );
+                false, null, null );
         }
 
         GitRevParseScmResult result =
             new GitRevParseScmResult( cl.toString(), "The git-rev-parse command succeeded.", stderr.getOutput(), true,
-                StringUtils.chomp( stdout.getOutput() ) );
+                StringUtils.chomp( stdout.getOutput() ), null );
 
         return result;
     }

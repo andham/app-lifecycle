@@ -36,6 +36,7 @@ import org.apache.maven.scm.ScmFileSet;
 import org.apache.maven.scm.manager.ScmManager;
 import org.apache.maven.scm.provider.ScmProviderRepository;
 import org.apache.maven.scm.provider.git.AbstractGitScmProvider;
+import org.apache.maven.scm.provider.hg.HgScmProvider;
 import org.apache.maven.scm.provider.svn.AbstractSvnScmProvider;
 import org.apache.maven.scm.provider.svn.command.info.SvnInfoItem;
 import org.apache.maven.scm.provider.svn.command.info.SvnInfoScmResult;
@@ -462,12 +463,29 @@ public class PluginDescriptorMojo
             throw new ScmException( scmResult.getCommandOutput() );
         }
 
-        request.setScmVersion( scmResult.getRevHash() );
-        // request.setScmTimestamp( info.getLastChangedDate() );
+        request.setScmVersion( scmResult.getChangeSetHash() );
+        request.setScmTimestamp( scmResult.getChangeSetDate() );
     }
 
     protected void fillHgScmInfo( final PluginMetadataGenerationRequest request, final ScmRepository repository )
         throws ScmException
     {
+        HgScmProvider hgScmProvider = (HgScmProvider) scmManager.getProviderByType( "hg" );
+
+        HgDebugIdCommand cmd = new HgDebugIdCommand();
+
+        cmd.setLogger( hgScmProvider.getLogger() );
+
+        HgDebugIdScmResult scmResult =
+            (HgDebugIdScmResult) cmd.execute( repository.getProviderRepository(),
+                new ScmFileSet( mavenProject.getBasedir() ), null );
+
+        if ( !scmResult.isSuccess() )
+        {
+            throw new ScmException( scmResult.getCommandOutput() );
+        }
+
+        request.setScmVersion( scmResult.getChangeSetHash() );
+        request.setScmTimestamp( scmResult.getChangeSetDate() );
     }
 }
