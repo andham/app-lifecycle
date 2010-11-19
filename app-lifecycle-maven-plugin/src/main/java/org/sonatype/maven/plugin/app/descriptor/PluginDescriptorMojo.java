@@ -35,6 +35,7 @@ import org.apache.maven.scm.ScmException;
 import org.apache.maven.scm.ScmFileSet;
 import org.apache.maven.scm.manager.ScmManager;
 import org.apache.maven.scm.provider.ScmProviderRepository;
+import org.apache.maven.scm.provider.git.AbstractGitScmProvider;
 import org.apache.maven.scm.provider.svn.AbstractSvnScmProvider;
 import org.apache.maven.scm.provider.svn.command.info.SvnInfoItem;
 import org.apache.maven.scm.provider.svn.command.info.SvnInfoScmResult;
@@ -171,7 +172,6 @@ public class PluginDescriptorMojo
      */
     private List<String> classpathDependencyExcludes;
 
-    @SuppressWarnings( "unchecked" )
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
@@ -269,7 +269,7 @@ public class PluginDescriptorMojo
                     }
 
                     final String artifactKey = ClasspathUtils.formatArtifactKey( artifact );
-                    
+
                     if ( !isExcluded( artifactKey ) )
                     {
                         request.addClasspathDependency( artifactCoordinate );
@@ -278,7 +278,8 @@ public class PluginDescriptorMojo
                     else
                     {
                         getLog().info(
-                            "Classpath dependency [" + artifactKey + "] is excluded from plugin bundle by user configuration." );
+                            "Classpath dependency [" + artifactKey
+                                + "] is excluded from plugin bundle by user configuration." );
                     }
                 }
             }
@@ -368,32 +369,37 @@ public class PluginDescriptorMojo
 
     // SCM
 
-    protected void fillScmInfo( PluginMetadataGenerationRequest request )
+    protected void fillScmInfo( final PluginMetadataGenerationRequest request )
     {
         // scm information
         try
         {
-            ScmRepository repository = getScmRepository();
+            final ScmRepository repository = getScmRepository();
 
-            SvnInfoScmResult scmResult = scmInfo( repository, new ScmFileSet( mavenProject.getBasedir() ) );
+            final String provider = repository.getProvider();
 
-            if ( !scmResult.isSuccess() )
+            if ( "svn".equals( provider ) )
             {
-                throw new ScmException( scmResult.getCommandOutput() );
+                fillSvnScmInfo( request, repository );
             }
-
-            SvnInfoItem info = (SvnInfoItem) scmResult.getInfoItems().get( 0 );
-
-            request.setScmVersion( info.getLastChangedRevision() );
-            request.setScmTimestamp( info.getLastChangedDate() );
+            else if ( "git".equals( provider ) )
+            {
+                fillGitScmInfo( request, repository );
+            }
+            else if ( "hg".equals( provider ) )
+            {
+                fillHgScmInfo( request, repository );
+            }
         }
         catch ( ScmException e )
         {
             this.getLog().warn( "Failed to get scm information: " + e.getMessage() );
+
+            this.getLog().debug( e );
         }
     }
 
-    private ScmRepository getScmRepository()
+    protected ScmRepository getScmRepository()
         throws ScmException
     {
         if ( StringUtils.isEmpty( urlScm ) )
@@ -418,10 +424,50 @@ public class PluginDescriptorMojo
         return repository;
     }
 
-    private SvnInfoScmResult scmInfo( ScmRepository repository, ScmFileSet fileSet )
+    protected void fillSvnScmInfo( final PluginMetadataGenerationRequest request, final ScmRepository repository )
         throws ScmException
     {
         AbstractSvnScmProvider abstractSvnScmProvider = (AbstractSvnScmProvider) scmManager.getProviderByType( "svn" );
-        return abstractSvnScmProvider.info( repository.getProviderRepository(), fileSet, null );
+
+        SvnInfoScmResult scmResult =
+            abstractSvnScmProvider.info( repository.getProviderRepository(),
+                new ScmFileSet( mavenProject.getBasedir() ), null );
+
+        if ( !scmResult.isSuccess() )
+        {
+            throw new ScmException( scmResult.getCommandOutput() );
+        }
+
+        SvnInfoItem info = (SvnInfoItem) scmResult.getInfoItems().get( 0 );
+
+        request.setScmVersion( info.getLastChangedRevision() );
+        request.setScmTimestamp( info.getLastChangedDate() );
+    }
+
+    protected void fillGitScmInfo( final PluginMetadataGenerationRequest request, final ScmRepository repository )
+        throws ScmException
+    {
+        AbstractGitScmProvider abstractGitScmProvider = (AbstractGitScmProvider) scmManager.getProviderByType( "git" );
+
+        GitRevParseCommand cmd = new GitRevParseCommand();
+
+        cmd.setLogger( abstractGitScmProvider.getLogger() );
+
+        GitRevParseScmResult scmResult =
+            (GitRevParseScmResult) cmd.execute( repository.getProviderRepository(),
+                new ScmFileSet( mavenProject.getBasedir() ), null );
+
+        if ( !scmResult.isSuccess() )
+        {
+            throw new ScmException( scmResult.getCommandOutput() );
+        }
+
+        request.setScmVersion( scmResult.getRevHash() );
+        // request.setScmTimestamp( info.getLastChangedDate() );
+    }
+
+    protected void fillHgScmInfo( final PluginMetadataGenerationRequest request, final ScmRepository repository )
+        throws ScmException
+    {
     }
 }
