@@ -148,14 +148,11 @@ public class CreateBundleMojo
 
             for ( Iterator it = cpArtifacts.keySet().iterator(); it.hasNext(); )
             {
-                String destName = (String) it.next();
+                String artifactKey = (String) it.next();
+                
+                FileItem fi = ClasspathUtils.createFileItemForKey( artifactKey, cpArtifacts );
 
-                String sourcePath = cpArtifacts.getProperty( destName );
-
-                FileItem fi = new FileItem();
-                fi.setSource( sourcePath );
                 fi.setOutputDirectory( outputDirectory );
-                fi.setDestName( new File( sourcePath ).getName() );
 
                 assembly.addFile( fi );
             }
