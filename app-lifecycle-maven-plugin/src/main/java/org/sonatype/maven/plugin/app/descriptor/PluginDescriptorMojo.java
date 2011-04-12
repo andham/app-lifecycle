@@ -288,6 +288,7 @@ public class PluginDescriptorMojo
 
         request.setOutputFile( this.generatedPluginMetadata );
         request.setClassesDirectory( new File( mavenProject.getBuild().getOutputDirectory() ) );
+        request.getClassesDirectory().mkdirs();
         try
         {
             if ( mavenProject.getCompileClasspathElements() != null )
