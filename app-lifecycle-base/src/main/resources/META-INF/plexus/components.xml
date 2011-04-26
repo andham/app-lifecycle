@@ -57,7 +57,16 @@
               <package>org.apache.maven.plugins:maven-jar-plugin:2.2:jar</package>
               
               <!-- Sonatype app-specific step inside: create a bundle for dropping into an existing application instance -->
-              <integration-test>org.sonatype.plugins:app-lifecycle-maven-plugin:${project.version}:create-bundle</integration-test>
+              <!-- NEXUS-4254: due to Maven core incapabilities to interfere with pre-defined packaging lifecycle,
+              we moved the bundle creation to "pre-integration-test" phase to make this plugin play nice with nexus-test-environment-maven-plugin.
+              Since Maven guarantees that lifecycle defined plugins will execute before POM defined ones, we are guaranteed that bundle
+              will be created before the nexus-test-environment-maven-plugin plugin checks for deps and the bundle of currently built plugin.
+              
+              Note: we moved this step out of "package" phase, since donation of Nexus Indexer to ASF, as it was moved out of Nexus codebase
+              and shading become a necessity for nexus-indexer-lucene-plugin. The guarantee mentioned above also _prevented_ us to modify
+              the JAR (with shading for example) that got into the bundle, and this was the initial reason why we moved bundle create to a latter
+              phase. -->
+              <pre-integration-test>org.sonatype.plugins:app-lifecycle-maven-plugin:${project.version}:create-bundle</pre-integration-test>
               
               <install>org.apache.maven.plugins:maven-install-plugin:2.2:install</install>
               <deploy>org.apache.maven.plugins:maven-deploy-plugin:2.4:deploy</deploy>
