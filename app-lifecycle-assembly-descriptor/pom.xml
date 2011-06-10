@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.sonatype.plugins</groupId>
     <artifactId>app-lifecycle</artifactId>
-    <version>1.4-SNAPSHOT</version>
+    <version>1.4</version>
   </parent>
   
   <artifactId>app-lifecycle-assembly-descriptor</artifactId>
