@@ -47,12 +47,12 @@
     </license>
   </licenses>
 
-  <scm>
-    <connection>scm:svn:http://svn.sonatype.org/plugins/trunk/app-lifecycle</connection>
-    <url>http://svn.sonatype.org/plugins/trunk/app-lifecycle</url>
-    <developerConnection>scm:svn:https://svn.sonatype.org/plugins/trunk/app-lifecycle</developerConnection>
+   <scm>
+    <connection>scm:git:git://github.com/sonatype/app-lifecycle.git</connection>
+    <developerConnection>scm:git:git@github.com:sonatype/app-lifecycle.git</developerConnection>
+    <url>https://github.com/sonatype/app-lifecycle</url>
   </scm>
-  
+ 
   <properties>
     <maven.version>3.0</maven.version>
   </properties>
