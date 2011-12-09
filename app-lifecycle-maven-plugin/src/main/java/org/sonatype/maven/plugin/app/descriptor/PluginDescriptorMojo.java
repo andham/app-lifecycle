@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.model.License;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -45,12 +44,6 @@ import org.codehaus.plexus.interpolation.InterpolationException;
 import org.codehaus.plexus.util.StringUtils;
 import org.sonatype.maven.plugin.app.ApplicationInformation;
 import org.sonatype.maven.plugin.app.ClasspathUtils;
-import org.sonatype.plugin.ExtensionPoint;
-import org.sonatype.plugin.Managed;
-import org.sonatype.plugin.metadata.GAVCoordinate;
-import org.sonatype.plugin.metadata.PluginMetadataGenerationRequest;
-import org.sonatype.plugin.metadata.PluginMetadataGenerator;
-import org.sonatype.plugin.metadata.gleaner.GleanerException;
 
 /**
  * Generates a plugin's <tt>plugin.xml</tt> descriptor file based on the project's pom and class annotations.
@@ -124,9 +117,6 @@ public class PluginDescriptorMojo
      */
     private String applicationMaxVersion;
 
-    /** @component */
-    private PluginMetadataGenerator metadataGenerator;
-
     /**
      * Brought in via build extension, this supplies default values specific to the application being built. <br/>
      * <b>NOTE:</b> There should be <b>AT MOST ONE</b> {@link ApplicationInformation} component present in any given
@@ -173,6 +163,15 @@ public class PluginDescriptorMojo
      */
     private List<String> classpathDependencyExcludes;
 
+    /**
+     * A list of groupId:artifactId references to non-plugin dependencies that should be shared along with main plugin
+     * JAR.
+     * 
+     * @parameter
+     * @since 1.5
+     */
+    private List<String> sharedDependencies;
+
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
@@ -214,21 +213,25 @@ public class PluginDescriptorMojo
         Set<Artifact> classpathArtifacts = new HashSet<Artifact>();
         if ( artifacts != null )
         {
+
             Set<String> excludedArtifactIds = new HashSet<String>();
 
             artifactLoop: for ( Artifact artifact : artifacts )
             {
+                final boolean hasComponents =
+                    ( componentDependencies != null && componentDependencies.contains( artifact.getGroupId() + ":"
+                        + artifact.getArtifactId() ) );
+
+                final boolean isShared =
+                    ( sharedDependencies != null && sharedDependencies.contains( artifact.getGroupId() + ":"
+                        + artifact.getArtifactId() ) );
+
                 GAVCoordinate artifactCoordinate =
-                    new GAVCoordinate( artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(),
-                        artifact.getClassifier(), artifact.getType() );
+                    new GAVCoordinate( artifact.getGroupId(), artifact.getArtifactId(), artifact.getBaseVersion(),
+                        artifact.getClassifier(), artifact.getType(), hasComponents, isShared );
 
                 if ( artifact.getType().equals( mapping.getPluginPackaging() ) )
                 {
-                    if ( artifact.isSnapshot() )
-                    {
-                        artifactCoordinate.setVersion( artifact.getBaseVersion() );
-                    }
-
                     if ( !Artifact.SCOPE_PROVIDED.equals( artifact.getScope() ) )
                     {
                         throw new MojoFailureException( "Plugin dependency \"" + artifact.getDependencyConflictId()
@@ -263,12 +266,6 @@ public class PluginDescriptorMojo
                         }
                     }
 
-                    if ( componentDependencies != null
-                        && componentDependencies.contains( artifact.getGroupId() + ":" + artifact.getArtifactId() ) )
-                    {
-                        artifactCoordinate.setHasComponents( true );
-                    }
-
                     final String artifactKey = ClasspathUtils.formatArtifactKey( artifact );
 
                     if ( !isExcluded( artifactKey ) )
@@ -287,32 +284,13 @@ public class PluginDescriptorMojo
         }
 
         request.setOutputFile( this.generatedPluginMetadata );
-        request.setClassesDirectory( new File( mavenProject.getBuild().getOutputDirectory() ) );
-        request.getClassesDirectory().mkdirs();
-        try
-        {
-            if ( mavenProject.getCompileClasspathElements() != null )
-            {
-                for ( String classpathElement : (List<String>) mavenProject.getCompileClasspathElements() )
-                {
-                    request.getClasspath().add( new File( classpathElement ) );
-                }
-            }
-        }
-        catch ( DependencyResolutionRequiredException e )
-        {
-            throw new MojoFailureException( "Plugin failed to resolve dependencies: " + e.getMessage(), e );
-        }
-
-        request.getAnnotationClasses().add( ExtensionPoint.class );
-        request.getAnnotationClasses().add( Managed.class );
 
         // do the work
         try
         {
-            this.metadataGenerator.generatePluginDescriptor( request );
+            new PluginDescriptorGenerator().generatePluginDescriptor( request );
         }
-        catch ( GleanerException e )
+        catch ( IOException e )
         {
             throw new MojoFailureException( "Failed to generate plugin xml file: " + e.getMessage(), e );
         }
@@ -377,6 +355,9 @@ public class PluginDescriptorMojo
         try
         {
             final ScmRepository repository = getScmRepository();
+            
+            // we are here, so no ScmException was thrown, we are fine
+            request.setScmUrl( urlScm );
 
             final String provider = repository.getProvider();
 

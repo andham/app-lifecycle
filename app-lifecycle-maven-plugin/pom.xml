@@ -18,7 +18,7 @@
   <name>App Lifecycle Maven Plugin</name>
 
   <properties>
-    <sonatype-plugin-api.version>1.0.3</sonatype-plugin-api.version>
+    <sonatype-plugin-api.version>1.1.0-SNAPSHOT</sonatype-plugin-api.version>
     <maven.scm.version>1.4</maven.scm.version>
   </properties>
 
@@ -40,11 +40,6 @@
     <dependency>
       <groupId>org.sonatype.plugin</groupId>
       <artifactId>plugin-model-api</artifactId>
-      <version>${sonatype-plugin-api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sonatype.plugin</groupId>
-      <artifactId>plugin-gleaner</artifactId>
       <version>${sonatype-plugin-api.version}</version>
     </dependency>
 
