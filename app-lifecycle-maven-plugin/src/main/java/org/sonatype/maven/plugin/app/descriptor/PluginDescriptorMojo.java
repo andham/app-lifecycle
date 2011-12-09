@@ -218,18 +218,6 @@ public class PluginDescriptorMojo
 
             artifactLoop: for ( Artifact artifact : artifacts )
             {
-                final boolean hasComponents =
-                    ( componentDependencies != null && componentDependencies.contains( artifact.getGroupId() + ":"
-                        + artifact.getArtifactId() ) );
-
-                final boolean isShared =
-                    ( sharedDependencies != null && sharedDependencies.contains( artifact.getGroupId() + ":"
-                        + artifact.getArtifactId() ) );
-
-                GAVCoordinate artifactCoordinate =
-                    new GAVCoordinate( artifact.getGroupId(), artifact.getArtifactId(), artifact.getBaseVersion(),
-                        artifact.getClassifier(), artifact.getType(), hasComponents, isShared );
-
                 if ( artifact.getType().equals( mapping.getPluginPackaging() ) )
                 {
                     if ( !Artifact.SCOPE_PROVIDED.equals( artifact.getScope() ) )
@@ -240,7 +228,9 @@ public class PluginDescriptorMojo
 
                     excludedArtifactIds.add( artifact.getId() );
 
-                    request.addPluginDependency( artifactCoordinate );
+                    // plugin interdependencies will use baseVersion, and let PluginManager resolve them runtime
+                    request.addPluginDependency( new GAVCoordinate( artifact.getGroupId(), artifact.getArtifactId(),
+                        artifact.getBaseVersion(), artifact.getClassifier(), artifact.getType(), false, false ) );
                 }
                 else if ( Artifact.SCOPE_PROVIDED.equals( artifact.getScope() )
                     || Artifact.SCOPE_TEST.equals( artifact.getScope() ) )
@@ -270,7 +260,20 @@ public class PluginDescriptorMojo
 
                     if ( !isExcluded( artifactKey ) )
                     {
-                        request.addClasspathDependency( artifactCoordinate );
+                        final boolean hasComponents =
+                            ( componentDependencies != null && componentDependencies.contains( artifact.getGroupId()
+                                + ":" + artifact.getArtifactId() ) );
+
+                        final boolean isShared =
+                            ( sharedDependencies != null && sharedDependencies.contains( artifact.getGroupId() + ":"
+                                + artifact.getArtifactId() ) );
+
+                        // classpath dependencies uses baseVersion, and let PluginManager resolve them runtime
+                        // this enables easy development turnaround, by not having recompiling the plugin to drop-in
+                        // newer snapshot
+                        request.addClasspathDependency( new GAVCoordinate( artifact.getGroupId(),
+                            artifact.getArtifactId(), artifact.getBaseVersion(), artifact.getClassifier(),
+                            artifact.getType(), hasComponents, isShared ) );
                         classpathArtifacts.add( artifact );
                     }
                     else
@@ -355,7 +358,7 @@ public class PluginDescriptorMojo
         try
         {
             final ScmRepository repository = getScmRepository();
-            
+
             // we are here, so no ScmException was thrown, we are fine
             request.setScmUrl( urlScm );
 
