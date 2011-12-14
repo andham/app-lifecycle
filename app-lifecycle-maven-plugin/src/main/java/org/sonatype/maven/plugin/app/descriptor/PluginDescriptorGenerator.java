@@ -60,7 +60,6 @@ public class PluginDescriptorGenerator
                 classpathDependency.setVersion( dependency.getVersion() );
                 classpathDependency.setClassifier( dependency.getClassifier() );
                 classpathDependency.setType( dependency.getType() );
-                classpathDependency.setHasComponents( dependency.hasComponents() );
                 classpathDependency.setShared( dependency.isShared() );
 
                 pluginMetadata.addClasspathDependency( classpathDependency );

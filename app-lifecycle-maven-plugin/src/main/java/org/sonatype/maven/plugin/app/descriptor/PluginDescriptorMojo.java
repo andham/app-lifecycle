@@ -61,7 +61,10 @@ public class PluginDescriptorMojo
      * gleaned for this plugin build.
      * 
      * @parameter
+     * @deprecated use {@link #sharedDependencies} instead. This Mojo will handle all "componentDependencies" and
+     *             "sharedDependencies" until removed.
      */
+    @Deprecated
     private List<String> componentDependencies;
 
     /**
@@ -165,12 +168,23 @@ public class PluginDescriptorMojo
 
     /**
      * A list of groupId:artifactId references to non-plugin dependencies that should be shared along with main plugin
-     * JAR.
+     * JAR to to dependants of this plugin.
      * 
      * @parameter
      * @since 1.5
      */
     private List<String> sharedDependencies;
+
+    protected void checkConfig()
+    {
+        if ( componentDependencies != null && componentDependencies.size() > 0 )
+        {
+            getLog().warn( "Plugin is using a deprecated configuration element \"componentDependencies\"!" );
+            getLog().warn(
+                "Please update your build by replacing \"componentDependencies\" with \"sharedDependencies\"." );
+            getLog().warn( "This plugin will continue handling \"componentDependencies\" as \"sharedDependencies\"..." );
+        }
+    }
 
     public void execute()
         throws MojoExecutionException, MojoFailureException
@@ -180,6 +194,8 @@ public class PluginDescriptorMojo
             this.getLog().info( "Project is not of packaging type '" + mapping.getPluginPackaging() + "'." );
             return;
         }
+
+        checkConfig();
 
         initConfig();
 
@@ -230,7 +246,7 @@ public class PluginDescriptorMojo
 
                     // plugin interdependencies will use baseVersion, and let PluginManager resolve them runtime
                     request.addPluginDependency( new GAVCoordinate( artifact.getGroupId(), artifact.getArtifactId(),
-                        artifact.getBaseVersion(), artifact.getClassifier(), artifact.getType(), false, false ) );
+                        artifact.getBaseVersion(), artifact.getClassifier(), artifact.getType(), false ) );
                 }
                 else if ( Artifact.SCOPE_PROVIDED.equals( artifact.getScope() )
                     || Artifact.SCOPE_TEST.equals( artifact.getScope() ) )
@@ -260,11 +276,12 @@ public class PluginDescriptorMojo
 
                     if ( !isExcluded( artifactKey ) )
                     {
+                        // support for deprecated config, if any
                         final boolean hasComponents =
                             ( componentDependencies != null && componentDependencies.contains( artifact.getGroupId()
                                 + ":" + artifact.getArtifactId() ) );
 
-                        final boolean isShared =
+                        final boolean isShared = hasComponents ||
                             ( sharedDependencies != null && sharedDependencies.contains( artifact.getGroupId() + ":"
                                 + artifact.getArtifactId() ) );
 
@@ -273,7 +290,7 @@ public class PluginDescriptorMojo
                         // newer snapshot
                         request.addClasspathDependency( new GAVCoordinate( artifact.getGroupId(),
                             artifact.getArtifactId(), artifact.getBaseVersion(), artifact.getClassifier(),
-                            artifact.getType(), hasComponents, isShared ) );
+                            artifact.getType(), isShared ) );
                         classpathArtifacts.add( artifact );
                     }
                     else

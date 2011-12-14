@@ -18,10 +18,8 @@ public class GAVCoordinate
 
     private final boolean shared;
 
-    private final boolean hasComponents;
-
     public GAVCoordinate( final String groupId, final String artifactId, final String version, final String classifier,
-                          final String type, final boolean hasComponents, final boolean shared )
+                          final String type, final boolean shared )
     {
         this.groupId = groupId;
         this.artifactId = artifactId;
@@ -49,7 +47,6 @@ public class GAVCoordinate
             this.type = DEFAULT_TYPE;
         }
 
-        this.hasComponents = hasComponents;
         this.shared = shared;
     }
 
@@ -76,11 +73,6 @@ public class GAVCoordinate
     public String getType()
     {
         return type;
-    }
-
-    public boolean hasComponents()
-    {
-        return hasComponents;
     }
 
     public boolean isShared()
