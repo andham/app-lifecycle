@@ -61,8 +61,8 @@ public class PluginDescriptorMojo
      * gleaned for this plugin build.
      * 
      * @parameter
-     * @deprecated use {@link #sharedDependencies} instead. This Mojo will handle all "componentDependencies" and
-     *             "sharedDependencies" until removed.
+     * @deprecated use {@link #sharedDependencies} instead. This Mojo will handle all "componentDependencies" as
+     *             "sharedDependencies" until former removed completely.
      */
     @Deprecated
     private List<String> componentDependencies;
@@ -168,7 +168,7 @@ public class PluginDescriptorMojo
 
     /**
      * A list of groupId:artifactId references to non-plugin dependencies that should be shared along with main plugin
-     * JAR to to dependants of this plugin.
+     * JAR to dependants of this plugin.
      * 
      * @parameter
      * @since 1.5
