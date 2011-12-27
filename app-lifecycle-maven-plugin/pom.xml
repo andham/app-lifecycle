@@ -18,7 +18,7 @@
   <name>App Lifecycle Maven Plugin</name>
 
   <properties>
-    <sonatype-plugin-api.version>1.1.0-SNAPSHOT</sonatype-plugin-api.version>
+    <sonatype-plugin-api.version>1.1.0</sonatype-plugin-api.version>
     <maven.scm.version>1.4</maven.scm.version>
   </properties>
 
