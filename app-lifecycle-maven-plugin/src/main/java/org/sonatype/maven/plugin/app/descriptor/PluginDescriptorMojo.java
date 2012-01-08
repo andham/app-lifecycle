@@ -175,6 +175,30 @@ public class PluginDescriptorMojo
      */
     private List<String> sharedDependencies;
 
+    /**
+     * Configures the plugin name.  Defaults to maven project name.
+     *
+     * @parameter expression="${pluginName}"
+     * @since 1.6
+     */
+    private String pluginName;
+    
+    /**
+     * Configures the plugin description.  Defaults to maven project description.
+     *
+     * @parameter expression="${pluginDescription}"
+     * @since 1.6
+     */
+    private String pluginDescription;
+
+    /**
+     * Configures the plugin site URL.  Defaults to maven project URL.
+     *
+     * @parameter expression="${pluginSiteUrl}"
+     * @since 1.6
+     */
+    private String pluginSiteUrl;
+
     protected void checkConfig()
     {
         if ( componentDependencies != null && componentDependencies.size() > 0 )
@@ -203,9 +227,10 @@ public class PluginDescriptorMojo
         request.setGroupId( this.mavenProject.getGroupId() );
         request.setArtifactId( this.mavenProject.getArtifactId() );
         request.setVersion( this.mavenProject.getVersion() );
-        request.setName( this.mavenProject.getName() );
-        request.setDescription( this.mavenProject.getDescription() );
-        request.setPluginSiteURL( this.mavenProject.getUrl() );
+
+        request.setName( pluginName != null ? pluginName : this.mavenProject.getName() );
+        request.setDescription( pluginDescription != null ? pluginDescription : this.mavenProject.getDescription() );
+        request.setPluginSiteURL( pluginSiteUrl != null ? pluginSiteUrl : this.mavenProject.getUrl() );
 
         request.setApplicationId( applicationId );
         request.setApplicationEdition( applicationEdition );
