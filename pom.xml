@@ -27,7 +27,7 @@
   </parent>
 
   <artifactId>app-lifecycle</artifactId>
-  <version>1.6-SNAPSHOT</version>
+  <version>1.6</version>
 
   <packaging>pom</packaging>
   <name>App Lifecycle Tools</name>
