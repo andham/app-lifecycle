@@ -1,8 +1,10 @@
 package org.sonatype.maven.plugin.app.descriptor;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Map.Entry;
 
 import org.codehaus.plexus.util.IOUtil;
@@ -14,6 +16,8 @@ import org.sonatype.plugins.model.io.xpp3.PluginModelXpp3Writer;
 
 public class PluginDescriptorGenerator
 {
+    private final static String MODEL_ENCODING = "UTF-8";
+    
     public void generatePluginDescriptor( final PluginMetadataGenerationRequest request )
         throws IOException
     {
@@ -21,6 +25,8 @@ public class PluginDescriptorGenerator
 
         // put it to request
         request.setPluginMetadata( pluginMetadata );
+        
+        pluginMetadata.setModelEncoding( MODEL_ENCODING );
 
         pluginMetadata.setGroupId( request.getGroupId() );
         pluginMetadata.setArtifactId( request.getArtifactId() );
@@ -92,17 +98,21 @@ public class PluginDescriptorGenerator
     {
         // make sure the file's parent is created
         outputFile.getParentFile().mkdirs();
-        FileWriter fileWriter = null;
+        FileOutputStream fos = null;
+        OutputStreamWriter streamWriter = null;
 
         try
         {
-            fileWriter = new FileWriter( outputFile );
+            fos = new FileOutputStream( outputFile );
+            streamWriter = new OutputStreamWriter( fos, MODEL_ENCODING );
+
             PluginModelXpp3Writer writer = new PluginModelXpp3Writer();
-            writer.write( fileWriter, pluginMetadata );
+            writer.write( streamWriter, pluginMetadata );
         }
         finally
         {
-            IOUtil.close( fileWriter );
+            IOUtil.close( streamWriter );
+            IOUtil.close( fos );
         }
     }
 }
