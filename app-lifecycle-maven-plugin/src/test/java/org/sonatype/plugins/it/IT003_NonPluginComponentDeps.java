@@ -38,7 +38,7 @@ public class IT003_NonPluginComponentDeps
 
         Set<String> xpaths =
             Collections.singleton( "//classpathDependency[artifactId/text()=\"it-component-dependency\" "
-                + "and hasComponents/text()=\"true\"]" );
+                + "and shared/text()=\"true\"]" );
 
         ContentAssertions assertions = new XPathContentAssertions( "META-INF/it/plugin.xml", xpaths );
 
