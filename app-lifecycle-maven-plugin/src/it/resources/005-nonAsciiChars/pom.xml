@@ -21,19 +21,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  
+
   <parent>
     <groupId>org.sonatype.plugins.it.applifecycle</groupId>
     <artifactId>it-parent</artifactId>
     <version>${project.version}</version>
   </parent>
-  
+
   <artifactId>005-nonAsciiChars</artifactId>
-  
+
   <name>non-ascii name: åäö</name>
   <description>non-ascii desc: åäö</description>
-  
+
   <packaging>it-plugin</packaging>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -44,7 +49,7 @@
       <scope>provided</scope>
     </dependency>
   </dependencies>
-  
+
   <build>
     <plugins>
       <plugin>
@@ -60,7 +65,7 @@
           </dependency>
         </dependencies>
       </plugin>
-              
+
       <plugin>
         <artifactId>maven-enforcer-plugin</artifactId>
         <version>1.0-beta-1</version>
