@@ -24,8 +24,8 @@
   <parent>
     <groupId>org.sonatype.plugins</groupId>
     <artifactId>plugins-parent</artifactId>
-    <version>8</version>
-    <relativePath />
+    <version>9</version>
+    <relativePath/>
   </parent>
 
   <artifactId>app-lifecycle</artifactId>
@@ -51,7 +51,7 @@
     </license>
   </licenses>
 
-   <scm>
+  <scm>
     <connection>scm:git:git://github.com/sonatype/app-lifecycle.git</connection>
     <developerConnection>scm:git:git@github.com:sonatype/app-lifecycle.git</developerConnection>
     <url>https://github.com/sonatype/app-lifecycle</url>
@@ -196,6 +196,55 @@
         </plugin>
       </plugins>
     </pluginManagement>
+
+    <!--
+          mvn license:format -N
+          If its a new year, update the year range in the header.txt file
+          -->
+    <plugins>
+      <plugin>
+        <groupId>com.mycila.maven-license-plugin</groupId>
+        <artifactId>maven-license-plugin</artifactId>
+        <configuration>
+          <aggregate>true</aggregate>
+          <strictCheck>true</strictCheck>
+          <header>${project.basedir}/header.txt</header>
+          <useDefaultExcludes>false</useDefaultExcludes>
+          <includes>
+            <include>**/pom.xml</include>
+            <include>**/*.xml</include>
+            <include>**/*.xsd</include>
+            <include>**/*.xjb</include>
+            <include>**/*.properties</include>
+            <include>**/*.ini</include>
+            <include>**/*.java</include>
+            <include>**/*.groovy</include>
+            <include>**/*.scala</include>
+            <include>**/*.aj</include>
+            <include>**/*.js</include>
+            <include>**/*.css</include>
+            <include>**/*.help</include>
+            <include>**/*.proto</include>
+            <include>**/*.sm</include>
+            <include>**/*.bat</include>
+          </includes>
+          <excludes>
+            <exclude>**/target/**</exclude>
+            <exclude>**/.*/**</exclude>
+          </excludes>
+          <mapping>
+            <scala>SLASHSTAR_STYLE</scala>
+            <java>SLASHSTAR_STYLE</java>
+            <xjb>XML_STYLE</xjb>
+            <proto>DOUBLESLASH_STYLE</proto>
+            <sm>DOUBLESLASH_STYLE</sm>
+            <help>SCRIPT_STYLE</help>
+            <ini>SCRIPT_STYLE</ini>
+          </mapping>
+        </configuration>
+      </plugin>
+    </plugins>
+
   </build>
 
 </project>
