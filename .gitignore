@@ -1,0 +1,11 @@
+target/
+.project
+.classpath
+.settings/
+.svn/
+bin/
+# Intellij
+*.ipr
+# vim
+*.swp
+access.bin
